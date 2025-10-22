@@ -1,0 +1,8 @@
+
+
+#Page type - Store home, Gallery, Menu list, Product list, Category, Slideshow, Screen page
+#Search type - All, category, {allow users to change}
+
+#Store, Images, Menus, Products, Categories, Slides, Screens
+#pages
+

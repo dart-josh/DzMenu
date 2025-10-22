@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --breakpoint-xs: 450px;
   --darkMode: class;
+  --breakpoint-xs: 450px;
 }
+
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -19,3 +20,4 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+

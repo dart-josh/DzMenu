@@ -1,0 +1,5 @@
+
+Fix theme
+create Menu page
+add cat.. to searchbar
+create Category page
