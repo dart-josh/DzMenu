@@ -1,5 +1,12 @@
 
 Fix theme
-create Menu page
-add cat.. to searchbar
+
+add scrollbar to main html page
+add product/meal info to product object
+
+set & get page details for routing
+
+build admin dashboard, page setup, page list
+£-dashboard->create->page info->page setup(preview)
+
 create Category page

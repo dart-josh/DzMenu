@@ -1,18 +1,20 @@
 import { create } from "zustand";
 
-export const useProductStore = create((set, get) => ({
-  products: [
+export const useMenuStore = create((set, get) => ({
+  items: [
     {
-      name: "Be Radiant",
+      name: "Be Radiant pepper mint with salad dressing and salt pepper dish",
       price: 2500,
       image: "/products/Juice-Be-Radiant-web.jpg",
-      category: "Juice",
+      category: "Edible",
+      description: 'This is a special dish made by african hands of a great chef and a very great cook of adverisity'
     },
     {
       name: "Brighter Side",
       price: 2500,
       image: "/products/Juice-Brighter-Side-web.jpg",
       category: "Juice",
+      description: "This is a special dish made by african",
     },
     {
       name: "Lift Me Up",
@@ -90,84 +92,83 @@ export const useProductStore = create((set, get) => ({
 
   categories: [
     "All",
-    "Juice",
-    "Smoothies",
-    "Tiger nut",
-    "Yoghurt",
-    "Whole foods",
+    "Edible",
+    "Swallow",
+    "Protein",
+    "Soup",
+    "Drinks",
     "Fruits",
   ],
   listTypes: ["grid", "list"],
 
   category: "All",
-  productsToDisplay: [],
-  filteredProducts: [],
+  itemsToDisplay: [],
+  filteredItems: [],
   searchQuery: "",
-  listType: "grid",
+  listType: "menu",
 
-  activeProductInfo: null,
+  activeMealInfo: null,
 
-  // Load products into the store
-  setProducts: (data) => set({ products: data, productsToDisplay: data }),
+  // Load items into the store
+  setItems: (data) => set({ items: data, itemsToDisplay: data }),
 
   // set
   applyCategory: (category) => {
-    const { products } = get();
+    const { items } = get();
     if (category == "All") {
       set({
         category,
-        productsToDisplay: products,
+        itemsToDisplay: items,
       });
     } else {
-      const filtered = products.filter(
-        (product) => product.category.toLowerCase() == category.toLowerCase()
+      const filtered = items.filter(
+        (item) => item.category.toLowerCase() == category.toLowerCase()
       );
 
       set({
         category,
-        productsToDisplay: filtered,
+        itemsToDisplay: filtered,
       });
     }
   },
 
   // Update search query and filter
-  setSearch: (query, searchCategory = "All") => {
-    const { products } = get();
+  setSearch: (query, searchCategory = 'All') => {
+    const { items } = get();
     if (!query) {
-      set({ filteredProducts: [], searchQuery: "" });
+      set({ filteredItems: [], searchQuery: "" });
       return;
     }
 
-    var pf = products;
-    if (searchCategory && searchCategory != "All") {
-      pf = products.filter(
-        (product) =>
-          product.category.toLowerCase() == searchCategory.toLowerCase()
+    var pf = items;
+    if (searchCategory && searchCategory != 'All') {
+      pf = items.filter(
+        (item) => item.category.toLowerCase() == searchCategory.toLowerCase()
       );
     }
 
-    const filtered = pf.filter((product) =>
-      product.name.toLowerCase().includes(query.toLowerCase())
+    const filtered = pf.filter((item) =>
+      item.name.toLowerCase().includes(query.toLowerCase())
     );
 
     set({
       searchQuery: `${query}-${searchCategory}`,
-      filteredProducts: filtered,
+      filteredItems: filtered,
     });
   },
 
   // Reset search
   clearSearch: () => {
-    set({ filteredProducts: [], searchQuery: "" });
+    set({ filteredItems: [], searchQuery: "" });
   },
 
   // Set list style
   setListType: (listType) => {
-    set({ listType });
+    set({listType});
   },
 
-  setActiveProductInfo: (product) => {
-    set({ activeProductInfo: product });
+  setActiveMealInfo: (meal) => {
+    set({ activeMealInfo: meal });
   },
 
   //
