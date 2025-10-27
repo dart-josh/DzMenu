@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 // Toolbar
 const Toolbar = ({
   listType,
-  setListType,
+  changeListType,
   applyCategory,
   category,
   setSearch,
@@ -88,49 +88,79 @@ const Toolbar = ({
 
   const iconClass =
     "size-4.5 xs:size-5 text-gray-600 dark:text-gray-300 cursor-pointer transition";
-  
-    const ProductListTypeIcons = () => {
-    return listType === "grid" ? (
-      <LayoutGrid
-        onClick={() => setListType("list")}
-        className={`${iconClass} hover:text-teal-500`}
-      />
-    ) : (
-      <List
-        onClick={() => setListType("grid")}
-        className={`${iconClass} hover:text-teal-500`}
-      />
-    );
+
+  const ProductListTypeIcons = () => {
+    switch (listType) {
+      case "grid":
+        return (
+          <LayoutGrid
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-teal-500`}
+          />
+        );
+
+      case "list":
+        return (
+          <List
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-amber-500`}
+          />
+        );
+
+      default:
+        return (
+          <LayoutGrid
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-teal-500`}
+          />
+        );
+    }
   };
 
   const MenuListTypeIcons = () => {
-    return listType === "menu" ? (
-      <Theater
-        onClick={() => setListType("grid")}
-        className={`${iconClass} hover:text-lime-500`}
-      />
-    ) : listType === "grid" ? (
-      <LayoutGrid
-        onClick={() => setListType("list")}
-        className={`${iconClass} hover:text-teal-500`}
-      />
-    ) : (
-      <List
-        onClick={() => setListType("menu")}
-        className={`${iconClass} hover:text-amber-500`}
-      />
-    );
+    switch (listType) {
+      case "menu":
+        return (
+          <Theater
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-lime-500`}
+          />
+        );
+      case "grid":
+        return (
+          <LayoutGrid
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-teal-500`}
+          />
+        );
+
+      case "list":
+        return (
+          <List
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-amber-500`}
+          />
+        );
+
+      default:
+        return (
+          <Theater
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-lime-500`}
+          />
+        );
+    }
   };
 
   const ListTypeIcon = () => {
     switch (pageType) {
       case "menu":
-        return <MenuListTypeIcons/>;
+        return <MenuListTypeIcons />;
       case "product":
-        return <ProductListTypeIcons/>;
+        return <ProductListTypeIcons />;
 
       default:
-        return <ProductListTypeIcons/>;
+        return <ProductListTypeIcons />;
     }
   };
 

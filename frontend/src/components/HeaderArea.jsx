@@ -7,7 +7,7 @@ const HeaderArea = ({
   applyCategory,
   category,
   listType,
-  setListType,
+  changeListType,
   setSearch,
   clearSearch,
   searchQuery,
@@ -61,7 +61,7 @@ const HeaderArea = ({
       <div className="pt-3 px-2 flex justify-center">
         <Toolbar
           listType={listType}
-          setListType={setListType}
+          changeListType={changeListType}
           applyCategory={applyCategory}
           category={category}
           setSearch={setSearch}
@@ -76,11 +76,14 @@ const HeaderArea = ({
 };
 
 // Header
-const Header = ({setSidebarOpen}) => {
+const Header = ({ setSidebarOpen }) => {
   return (
     <div className="mx-3 h-18 bg-[#242424] pt-1 w-full flex justify-center items-center">
       {/* Sidebar button */}
-      <div onClick={() => setSidebarOpen(true)} className="size-8 bg-teal-500/70 absolute left-2.5 top-2.5 rounded flex justify-center items-center cursor-pointer">
+      <div
+        onClick={() => setSidebarOpen(true)}
+        className="size-8 bg-teal-500/70 absolute left-2.5 top-2.5 rounded flex justify-center items-center cursor-pointer"
+      >
         <LogoTile scale="0" showLogo={false} />
       </div>
 

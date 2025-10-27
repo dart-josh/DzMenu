@@ -10,3 +10,46 @@ build admin dashboard, page setup, page list
 £-dashboard->create->page info->page setup(preview)
 
 create Category page
+
+
+---------page detail----------
+[LINK]
+
+
+
+---schema
+Category
+products
+pages
+
+
+
+--- product
+add product - with image
+edit product
+delete product
+
+
+
+---- pages
+create page
+edit page
+delete page
+[fetch page]
+get pages
+
+
+
+---- Category
+add Category
+delete category
+
+
+auth
+
+----- store
+create store
+edit store
+delete store
+
+get store

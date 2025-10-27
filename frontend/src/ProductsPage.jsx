@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ProductTile from "./components/ProductTile";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,27 +10,20 @@ import Sidebar from "./components/SideBar";
 
 const ProductsPage = () => {
   const {
-    setProducts,
-    products,
     applyCategory,
     category,
     listType,
-    setListType,
+    changeListType,
     setSearch,
     clearSearch,
     searchQuery,
     categories,
     activeProductInfo,
     setActiveProductInfo,
+    pages,
   } = useProductStore();
 
-  const pages = [{link: '/meals', label: 'Meals'}, {link: '/category', label: 'Category'}];
-
   const headerHeight = 120; // total height of Header + Toolbar
-
-  useEffect(() => {
-    setProducts(products);
-  }, [products, setProducts]);
 
   const [productMealDialogOpen, setProductMealDialogOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,7 +36,7 @@ const ProductsPage = () => {
         applyCategory={applyCategory}
         category={category}
         listType={listType}
-        setListType={setListType}
+        changeListType={changeListType}
         setSearch={setSearch}
         clearSearch={clearSearch}
         searchQuery={searchQuery}
