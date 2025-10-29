@@ -12,7 +12,6 @@ const HeaderArea = ({
   clearSearch,
   searchQuery,
   categories,
-  pageType,
   setSidebarOpen,
 }) => {
   const [offset, setOffset] = useState(0); // how much header/toolbar have slid up
@@ -68,7 +67,6 @@ const HeaderArea = ({
           clearSearch={clearSearch}
           searchQuery={searchQuery}
           categories={categories}
-          pageType={pageType}
         />
       </div>
     </div>

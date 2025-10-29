@@ -1,10 +1,11 @@
 import { pageSchema } from "../../models/page.schema.js";
+import { productSchema } from "../../models/product.schema.js";
 import { Store } from "../../models/store.model.js";
 import { getTenantModel } from "../../utils/tenantManager.js";
 
 // create page
 export const create_page = async (req, res) => {
-  // link, title, description products, categories, category, listTypes, listType, pages, shuffleList
+  // link, pageType, title, description products, categories, category, listTypes, listType, pages, shuffleList
   try {
     const { storeId } = req.params;
     const { pageDetails } = req.body;
@@ -77,13 +78,15 @@ export const fetch_page = async (req, res) => {
     if (!store) return res.status(404).json({ error: "Store not found" });
 
     const Page = await getTenantModel(store.dbName, "Page", pageSchema);
+    await getTenantModel(store.dbName, "Product", productSchema);
 
     if (!link) {
       const page = await Page.findOne({ defaultPage: true });
       return res.json(page);
     }
 
-    const page = await Page.findOne({ link });
+    const page = await Page.findOne({ link }).populate("products");
+    
     res.json(page);
   } catch (err) {
     console.error("❌ Error in v1 page.controller fetch_page:", err);

@@ -1,30 +1,24 @@
-import { useEffect, useState } from "react";
-import { useProductStore } from "../store/useProductStore";
-import { useMenuStore } from "../store/useMenuStore";
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { fetchPageFromRoute } from "../helpers/storeHelpers";
-import ProductsPage from "../ProductsPage";
-import MenuPage from "../MenuPage";
+import ProductsPage from "../pages/ProductsPage";
+import MenuPage from "../pages/MenuPage";
+import { routerHook } from "../hooks/routerHook";
+import { usePageStore } from "../store/usePageStore";
 
 const FetchPageDetails = () => {
   const { pathname } = useLocation();
 
-  const [isFetching, setIsFetching] = useState(true);
-  const [pageData, setPageData] = useState(null);
+  const { route, isFetching, pageData, routePage } = routerHook();
 
+  // path change
   useEffect(() => {
-    async function fetchPageDetails() {
-      const res = await fetchPageFromRoute(pathname);
+    routePage(pathname);
+  }, [pathname, routePage]);
 
-      if (res && res.pageType) {
-        setPageData(res);
-      }
-      setIsFetching(false);
-    }
-
-    setIsFetching(true);
-    fetchPageDetails();
-  }, [pathname]);
+  // route change
+  useEffect(() => {
+    // replace path with route
+  }, [route]);
 
   if (isFetching)
     return (
@@ -32,22 +26,30 @@ const FetchPageDetails = () => {
         Fetching....
       </div>
     );
+  else if (route === "client_broken")
+    return <BadPageRoute title={"Invalid Client URL"} />;
+  else if (route === "store_broken")
+    return <BadPageRoute title={"Invalid Store url"} />;
+  else if (route === "not_found")
+    return <BadPageRoute title={"Page not found"} />;
+  // invalid page data
+  else if (!pageData) return <BadPageRoute title={"Error fetching page"} />;
+  // valid page
   else return <SetStoreData data={pageData}> </SetStoreData>;
 };
 
+// Set store data
 const SetStoreData = ({ data }) => {
-  const { setProductStoreData } = useProductStore();
-  const { setMenuStoreData } = useMenuStore();
+  const { setPageData } = usePageStore();
 
   useEffect(() => {
-    if (data.pageType == "Product") setProductStoreData(data.storeData);
-    if (data.pageType == "Menu")
-      setMenuStoreData({ ...data.storeData, items: data.storeData.products });
-  }, [data, setMenuStoreData, setProductStoreData]);
+    setPageData(data);
+  }, [data, setPageData]);
 
   return <RoutePage pageType={data.pageType} />;
 };
 
+// Route page with (pageType)
 const RoutePage = ({ pageType }) => {
   switch (pageType) {
     case "Product":
@@ -56,8 +58,15 @@ const RoutePage = ({ pageType }) => {
       return <MenuPage />;
 
     default:
-      <></>;
+      return <ProductsPage />;
   }
+};
+
+//! Bad page
+const BadPageRoute = ({ title }) => {
+  return (
+    <div className="h-screen flex items-center justify-center">{title}</div>
+  );
 };
 
 export default FetchPageDetails;

@@ -6,50 +6,28 @@ add product/meal info to product object
 
 set & get page details for routing
 
-build admin dashboard, page setup, page list
-£-dashboard->create->page info->page setup(preview)
+--build admin pages
 
 create Category page
 
+------ ADMIN pages
 
----------page detail----------
-[LINK]
+sign up, login, verify email, forgot password, reset password
+create/edit profile, change email, change password, delete account
+dashboard, create store, manage store, edit store, delete store
+create page, manage page, edit page, preview page, delete page
+view products, create product, manage product, edit product
+view categories, add category
 
+Trash
 
+----.....---------
 
----schema
-Category
-products
-pages
+// todo auth
+TEST USER AND AUTH
 
+£ No store can use the id client/admin
 
+UPGRADE---
+Redis
 
---- product
-add product - with image
-edit product
-delete product
-
-
-
----- pages
-create page
-edit page
-delete page
-[fetch page]
-get pages
-
-
-
----- Category
-add Category
-delete category
-
-
-auth
-
------ store
-create store
-edit store
-delete store
-
-get store

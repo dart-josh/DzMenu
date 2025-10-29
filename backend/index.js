@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
+import cookieParser from "cookie-parser";
 
 import routes from "./routes/routes.js";
 
@@ -35,16 +36,16 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
+app.use(cookieParser());
 
 // Versioned API router entry point
 app.use("/api", routes);
-// app.use('/api', (req, res) => {console.log('innnn')})
 
 // serve frontend in production
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "./frontend/dist")));
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
   app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "./frontend/dist/index.html"));
+    res.sendFile(path.resolve(__dirname, "../frontend/dist/index.html"));
   });
 }
 

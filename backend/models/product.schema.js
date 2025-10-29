@@ -12,3 +12,5 @@ export const productSchema = new mongoose.Schema({
 export const categorySchema = new mongoose.Schema({
   category: {type: String, required: true, unique: true},
 });
+
+// http://localhost:5173/client/store/del/create_product

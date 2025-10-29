@@ -23,13 +23,12 @@ const Toolbar = ({
   clearSearch,
   searchQuery,
   categories,
-  pageType,
 }) => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
   const [searchOpen, setSearchOpen] = useState(false);
 
-  //   animate page if category or listType changes
+  // animate page if category or listType changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [category, listType]);
@@ -89,78 +88,39 @@ const Toolbar = ({
   const iconClass =
     "size-4.5 xs:size-5 text-gray-600 dark:text-gray-300 cursor-pointer transition";
 
-  const ProductListTypeIcons = () => {
-    switch (listType) {
-      case "grid":
-        return (
-          <LayoutGrid
-            onClick={() => changeListType()}
-            className={`${iconClass} hover:text-teal-500`}
-          />
-        );
-
-      case "list":
-        return (
-          <List
-            onClick={() => changeListType()}
-            className={`${iconClass} hover:text-amber-500`}
-          />
-        );
-
-      default:
-        return (
-          <LayoutGrid
-            onClick={() => changeListType()}
-            className={`${iconClass} hover:text-teal-500`}
-          />
-        );
-    }
-  };
-
-  const MenuListTypeIcons = () => {
-    switch (listType) {
-      case "menu":
-        return (
-          <Theater
-            onClick={() => changeListType()}
-            className={`${iconClass} hover:text-lime-500`}
-          />
-        );
-      case "grid":
-        return (
-          <LayoutGrid
-            onClick={() => changeListType()}
-            className={`${iconClass} hover:text-teal-500`}
-          />
-        );
-
-      case "list":
-        return (
-          <List
-            onClick={() => changeListType()}
-            className={`${iconClass} hover:text-amber-500`}
-          />
-        );
-
-      default:
-        return (
-          <Theater
-            onClick={() => changeListType()}
-            className={`${iconClass} hover:text-lime-500`}
-          />
-        );
-    }
-  };
 
   const ListTypeIcon = () => {
-    switch (pageType) {
+    switch (listType) {
       case "menu":
-        return <MenuListTypeIcons />;
-      case "product":
-        return <ProductListTypeIcons />;
+        return (
+          <Theater
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-lime-500`}
+          />
+        );
+      case "grid":
+        return (
+          <LayoutGrid
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-teal-500`}
+          />
+        );
+
+      case "list":
+        return (
+          <List
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-amber-500`}
+          />
+        );
 
       default:
-        return <ProductListTypeIcons />;
+        return (
+          <LayoutGrid
+            onClick={() => changeListType()}
+            className={`${iconClass} hover:text-lime-500`}
+          />
+        );
     }
   };
 
@@ -275,7 +235,7 @@ const CategoryDropdown = ({ element, setCategory, categories }) => {
       {/* category options */}
       {open && (
         <div className="absolute left-0 mt-3 origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg max-h-[300px] overflow-auto custom-scrollbar">
-          {categories.map((c, i) => (
+          {categories && categories.map((c, i) => (
             <button
               key={i}
               onClick={() => {

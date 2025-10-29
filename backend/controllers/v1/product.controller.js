@@ -80,12 +80,12 @@ export const update_product = async (req, res) => {
       if (!oldProduct)
         return res.status(404).json({ error: "Product not found" });
 
-      const deleted = await deleteProductImage(oldProduct.image, storeId);
+      // const deleted = await deleteProductImage(oldProduct.image, storeId);
 
-      if (!deleted)
-        return res.status(400).json({ error: "Error deleting image" });
+      // if (!deleted)
+      //   return res.status(400).json({ error: "Error deleting image" });
 
-      imageUrl = await addUpdateProductImage(productDetails?.image, storeId);
+      imageUrl = await addUpdateProductImage(req.file.path, storeId);
     }
 
     productDetails.image = imageUrl;
@@ -215,12 +215,15 @@ export const remove_category = async (req, res) => {
 //?
 
 //? UTILS
+
+
+
 export const addUpdateProductImage = async (image, storeId) => {
   try {
     let cloudinaryResponse = null;
 
     if (image) {
-      cloudinaryResponse = await cloudinary.uploader(image, {
+      cloudinaryResponse = await cloudinary.uploader.upload(image, {
         folder: `${storeId}/products`,
       });
     }

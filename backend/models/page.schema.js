@@ -2,9 +2,10 @@ import mongoose from "mongoose";
 
 export const pageSchema = new mongoose.Schema({
   link: { type: String, unique: true, required: true },
+  pageType: {type: String, required: true},
   title: String,
   description: String,
-  products: [],
+  products: [{type: mongoose.Schema.Types.ObjectId, ref: "Product"}],
   categories: [],
   category: { type: String, default: "All" },
   listTypes: [],

@@ -4,11 +4,11 @@ import axios from "axios";
 const dev_mode = process.env.NODE_ENV === "development";
 const server_prefix = dev_mode ? "http://localhost:5000/api/v1" : "/api/v1";
 
-
+//?------- STORE ------------------
 
 // create store
 export const create_store = async (data) => {
-  // const data = {storeId, name}
+  // const data = {storeId, storeName, storeType, address}
   try {
     const response = await axios.post(
       `${server_prefix}/store/create_store`,
@@ -18,16 +18,87 @@ export const create_store = async (data) => {
     return {
       success: true,
       message: response.data.message,
-      dbName: response.data.dbName,
+      storeId: response.data.storeId,
     };
   } catch (error) {
     console.log("Error in create_store function - ", error);
     return {
       success: false,
-      message: error.response.data.message || error.message || error,
+      message: error.response?.data?.error || error.message || error,
     };
   }
 };
+
+// update store
+export const update_store = async (data) => {
+  // const data = {storeId, storeName, storeType, address}
+  try {
+    const response = await axios.post(
+      `${server_prefix}/store/update_store`,
+      data
+    );
+
+    return {
+      success: true,
+      message: response.data.message,
+      store: response.data.store,
+    };
+  } catch (error) {
+    console.log("Error in update_store function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+// get store
+export const get_store = async (storeId) => {
+  try {
+    const response = await axios.get(
+      `${server_prefix}/store/get_store/${storeId}`
+    );
+
+    return response.data;
+  } catch (error) {
+    console.log("Error in get_store function - ", error);
+    return null;
+  }
+};
+
+// get stores
+export const get_stores = async () => {
+  try {
+    const response = await axios.get(`${server_prefix}/store/get_stores`);
+
+    return response.data;
+  } catch (error) {
+    console.log("Error in get_stores function - ", error);
+    return null;
+  }
+};
+
+// delete store
+export const delete_store = async (storeId) => {
+  try {
+    const response = await axios.delete(
+      `${server_prefix}/store/delete_store/${storeId}`
+    );
+
+    return {
+      success: true,
+      message: response.data.message,
+    };
+  } catch (error) {
+    console.log("Error in delete_store function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+//?----------------------------------
 
 //?------- PAGE ------------------
 
@@ -78,11 +149,12 @@ export const update_page = async (storeId, data) => {
 };
 
 // fetch page
-export const fetch_page = async (storeId, link ) => {
+export const fetch_page = async (storeId, link) => {
+  const url = !link
+    ? `${server_prefix}/page/fetch/${storeId}`
+    : `${server_prefix}/page/fetch/${storeId}/${link}`;
   try {
-    const response = await axios.get(
-      `${server_prefix}/page/fetch/${storeId}/${link}`
-    );
+    const response = await axios.get(url);
 
     return response.data;
   } catch (error) {
@@ -92,13 +164,13 @@ export const fetch_page = async (storeId, link ) => {
 };
 
 // delete page
-export const delete_page = async (storeId, link ) => {
+export const delete_page = async (storeId, link) => {
   try {
     const response = await axios.delete(
       `${server_prefix}/page/delete/${storeId}/${link}`
     );
 
-   return {
+    return {
       success: true,
       message: response.data.message,
     };
@@ -112,7 +184,7 @@ export const delete_page = async (storeId, link ) => {
 };
 
 // get pages
-export const get_pages = async (storeId ) => {
+export const get_pages = async (storeId) => {
   try {
     const response = await axios.get(
       `${server_prefix}/page/get_pages/${storeId}`
@@ -176,13 +248,13 @@ export const update_product = async (storeId, data) => {
 };
 
 // delete product
-export const delete_product = async (storeId, productId ) => {
+export const delete_product = async (storeId, productId) => {
   try {
     const response = await axios.delete(
       `${server_prefix}/product/delete/${storeId}/${productId}`
     );
 
-   return {
+    return {
       success: true,
       message: response.data.message,
     };
@@ -202,7 +274,7 @@ export const add_category = async (storeId, category) => {
   try {
     const response = await axios.post(
       `${server_prefix}/product/add_category/${storeId}`,
-      {category}
+      { category }
     );
 
     return {
@@ -220,13 +292,13 @@ export const add_category = async (storeId, category) => {
 };
 
 // remove category
-export const remove_category = async (storeId, category ) => {
+export const remove_category = async (storeId, category) => {
   try {
     const response = await axios.delete(
       `${server_prefix}/product/remove_category/${storeId}/${category}`
     );
 
-   return {
+    return {
       success: true,
       message: response.data.message,
     };
@@ -238,5 +310,13 @@ export const remove_category = async (storeId, category ) => {
     };
   }
 };
+
+//?----------------------------------
+
+//?------- USER ------------------
+//!
+
+//?------- AUTH ------------------
+//!
 
 //?----------------------------------

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import ProductTile from "./components/ProductTile";
+import ProductTile from "../components/ProductTile";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { useProductStore } from "./store/useProductStore";
-import HeaderArea from "./components/HeaderArea";
-import Footer from "./components/Footer";
-import ProductMealDialog from "./components/ProductMealDialog";
-import Sidebar from "./components/SideBar";
+import { usePageStore } from "../store/usePageStore";
+import HeaderArea from "../components/HeaderArea";
+import Footer from "../components/Footer";
+import ProductMealDialog from "../components/ProductMealDialog";
+import Sidebar from "../components/SideBar";
 
 const ProductsPage = () => {
   const {
@@ -21,7 +21,7 @@ const ProductsPage = () => {
     activeProductInfo,
     setActiveProductInfo,
     pages,
-  } = useProductStore();
+  } = usePageStore();
 
   const headerHeight = 120; // total height of Header + Toolbar
 
@@ -29,7 +29,7 @@ const ProductsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center custom-scrollbar verflow-y-scroll">
+    <div className="w-full min-h-screen flex flex-col items-center custom-scrollbar overflow-y-scroll">
       {/* Fixed Header + Toolbar */}
       <HeaderArea
         headerHeight={headerHeight}
@@ -78,7 +78,7 @@ const ListArea = ({ setProductMealDialogOpen }) => {
     category,
     listType,
     setActiveProductInfo,
-  } = useProductStore();
+  } = usePageStore();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -103,7 +103,7 @@ const ListArea = ({ setProductMealDialogOpen }) => {
   };
 
   const products = searchQuery != "" ? filteredProducts : productsToDisplay;
-
+  // console.log(productsToDisplay)
   return (
     <AnimatePresence>
       <motion.div

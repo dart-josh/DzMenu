@@ -1,10 +1,18 @@
 import express from "express";
 import { add_category, create_product, delete_product, remove_category, update_product } from "../../controllers/v1/product.controller.js";
+
+
+import multer from "multer";
+
 const router = express.Router();
 
+// Multer setup (to handle file uploads)
+const storage = multer.diskStorage({});
+const upload = multer({ storage });
+
 //! protected by auth & owner
-router.post("/create/:storeId", create_product);
-router.post("/update/:storeId", update_product);
+router.post("/create/:storeId", upload.single("image"), create_product);
+router.post("/update/:storeId", upload.single("image"), update_product);
 
 router.delete("/delete/:storeId/:productId", delete_product)
 

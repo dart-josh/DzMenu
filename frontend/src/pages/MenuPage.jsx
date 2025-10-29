@@ -1,12 +1,12 @@
 import { useState } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import HeaderArea from "./components/HeaderArea";
-import Footer from "./components/Footer";
-import { useMenuStore } from "./store/useMenuStore";
-import MenuTile from "./components/MenuTile";
-import ProductMealDialog from "./components/ProductMealDialog";
-import Sidebar from "./components/SideBar";
+import HeaderArea from "../components/HeaderArea";
+import Footer from "../components/Footer";
+import { usePageStore } from "../store/usePageStore";
+import MenuTile from "../components/MenuTile";
+import ProductMealDialog from "../components/ProductMealDialog";
+import Sidebar from "../components/SideBar";
 
 const MenuPage = () => {
   const {
@@ -18,13 +18,13 @@ const MenuPage = () => {
     clearSearch,
     searchQuery,
     categories,
-    activeMealInfo,
-    setActiveMealInfo,
+    activeProductInfo,
+    setActiveProductInfo,
     pages,
-  } = useMenuStore();
+  } = usePageStore();
 
   const headerHeight = 120; // total height of Header + Toolbar
-
+ 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [productMealDialogOpen, setProductMealDialogOpen] = useState(false);
 
@@ -62,9 +62,9 @@ const MenuPage = () => {
         open={productMealDialogOpen}
         onClose={() => {
           setProductMealDialogOpen(false);
-          setActiveMealInfo(null);
+          setActiveProductInfo(null);
         }}
-        item={activeMealInfo}
+        item={activeProductInfo}
       />
     </div>
   );
@@ -72,13 +72,13 @@ const MenuPage = () => {
 
 const ListArea = ({ setProductMealDialogOpen }) => {
   const {
-    itemsToDisplay,
-    filteredItems,
+    productsToDisplay,
+    filteredProducts,
     searchQuery,
     category,
     listType,
-    setActiveMealInfo,
-  } = useMenuStore();
+    setActiveProductInfo,
+  } = usePageStore();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -102,12 +102,12 @@ const ListArea = ({ setProductMealDialogOpen }) => {
     exit: { opacity: 0, scale: 0.9, y: -20, transition: { duration: 0.25 } },
   };
 
-  const items = searchQuery != "" ? filteredItems : itemsToDisplay;
+  const products = searchQuery != "" ? filteredProducts : productsToDisplay;
 
   return (
     <AnimatePresence>
       <motion.div
-        key={`${listType}-${items
+        key={`${listType}-${products
           .map((p) => p.id)
           .join("-")}-${searchQuery}-${category}`}
         variants={containerVariants}
@@ -125,13 +125,13 @@ const ListArea = ({ setProductMealDialogOpen }) => {
             : "grid-cols-1 xs:grid-cols-2 lg:grid-cols-3"
         }`}
       >
-        {items.map((item, index) => (
+        {products.map((item, index) => (
           <motion.div key={index} variants={itemVariants}>
             <MenuTile
               item={item}
               listType={listType}
               setOpen={setProductMealDialogOpen}
-              setActiveMealInfo={setActiveMealInfo}
+              setActiveProductInfo={setActiveProductInfo}
             />
           </motion.div>
         ))}

@@ -33,7 +33,7 @@ export async function getTenantConnection(dbName) {
     maxPoolSize: 10,
     minPoolSize: 1,
     serverSelectionTimeoutMS: 5000,
-  });
+  }).asPromise();
 
   conn.on("connected", () => console.log(`✅ Connected to ${dbName}`));
   conn.on("disconnected", () => console.warn(`⚠️ Disconnected from ${dbName}`));
