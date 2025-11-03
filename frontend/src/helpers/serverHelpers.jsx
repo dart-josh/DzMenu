@@ -207,7 +207,12 @@ export const create_product = async (storeId, data) => {
   try {
     const response = await axios.post(
       `${server_prefix}/product/create/${storeId}`,
-      data
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // ✅ required for axios
+        },
+      }
     );
 
     return {
@@ -226,11 +231,15 @@ export const create_product = async (storeId, data) => {
 
 // update product
 export const update_product = async (storeId, data) => {
-  // const data = {productDetails}
   try {
     const response = await axios.post(
       `${server_prefix}/product/update/${storeId}`,
-      data
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // ✅ required for axios
+        },
+      }
     );
 
     return {

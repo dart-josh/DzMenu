@@ -14,6 +14,7 @@ create Category page
 
 sign up, login, verify email, forgot password, reset password
 create/edit profile, change email, change password, delete account
+
 dashboard, create store, manage store, edit store, delete store
 create page, manage page, edit page, preview page, delete page
 view products, create product, manage product, edit product
@@ -27,6 +28,9 @@ Trash
 TEST USER AND AUTH
 
 £ No store can use the id client/admin
+reserve words - client,admin,new,create,return,div,case,script,update,delete
+
+show message if page not live
 
 UPGRADE---
 Redis

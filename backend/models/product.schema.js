@@ -14,3 +14,5 @@ export const categorySchema = new mongoose.Schema({
 });
 
 // http://localhost:5173/client/store/del/create_product
+
+// https://res.cloudinary.com/dzolib9yb/image/upload/v1761777981/del/products/ufrub5o5qykk0coa3xxj.png

@@ -8,7 +8,7 @@ export const create_product = async (req, res) => {
   // productId, name, price, image, category, description
   try {
     const { storeId } = req.params;
-    const { productDetails } = req.body;
+    const productDetails = req.body;
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
@@ -35,12 +35,14 @@ export const create_product = async (req, res) => {
     if (product_exist)
       return res.status(409).json({ error: "Product exist already" });
 
-    let imageUrl = "";
-    if (productDetails?.image) {
-      imageUrl = await addUpdateProductImage(productDetails?.image, storeId);
-    }
+    if (req.file) {
+      let imageUrl = "";
+      imageUrl = await addUpdateProductImage(req.file.buffer, storeId);
+      if (imageUrl) productDetails.image = imageUrl;
 
-    productDetails.image = imageUrl;
+      //!
+      console.log(imageUrl);
+    }
 
     const product = await Product.create(productDetails);
     res.status(201).json({ message: "Product created", product });
@@ -54,7 +56,7 @@ export const create_product = async (req, res) => {
 export const update_product = async (req, res) => {
   try {
     const { storeId } = req.params;
-    const { productDetails } = req.body;
+    const productDetails = req.body;
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
@@ -71,24 +73,26 @@ export const update_product = async (req, res) => {
       productSchema
     );
 
-    let imageUrl = "";
-    if (productDetails?.image) {
+    if (req.file) {
+      let imageUrl = "";
       const oldProduct = await Product.findOne({
         productId: productDetails.productId,
       });
-
       if (!oldProduct)
         return res.status(404).json({ error: "Product not found" });
 
-      // const deleted = await deleteProductImage(oldProduct.image, storeId);
+      if (oldProduct.image) {
+        const deleted = await deleteProductImage(oldProduct.image, storeId);
+        if (!deleted)
+          return res.status(400).json({ error: "Error updating image" });
+      }
 
-      // if (!deleted)
-      //   return res.status(400).json({ error: "Error deleting image" });
+      imageUrl = await addUpdateProductImage(req.file.buffer, storeId);
+      if (imageUrl) productDetails.image = imageUrl;
 
-      imageUrl = await addUpdateProductImage(req.file.path, storeId);
+      //!
+      console.log(imageUrl);
     }
-
-    productDetails.image = imageUrl;
 
     const updatedProduct = await Product.findOneAndUpdate(
       { productId: productDetails.productId },
@@ -174,7 +178,7 @@ export const add_category = async (req, res) => {
     if (category_exist)
       return res.status(409).json({ error: "Category exist already" });
 
-    const new_category = await Category.create({category});
+    const new_category = await Category.create({ category });
     res.status(201).json({ message: "Category created", new_category });
   } catch (err) {
     console.error("❌ Error in v1 product.controller add_category:", err);
@@ -216,16 +220,15 @@ export const remove_category = async (req, res) => {
 
 //? UTILS
 
-
-
 export const addUpdateProductImage = async (image, storeId) => {
   try {
     let cloudinaryResponse = null;
 
     if (image) {
-      cloudinaryResponse = await cloudinary.uploader.upload(image, {
-        folder: `${storeId}/products`,
-      });
+      cloudinaryResponse = await uploadToCloudinary(
+        image,
+        `${storeId}/products`
+      );
     }
 
     return cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "";
@@ -248,4 +251,21 @@ export const deleteProductImage = async (image, storeId) => {
     console.log("Error in deleteProductImage: ", error);
     return false;
   }
+};
+
+// Upload buffer to Cloudinary using upload_stream
+const uploadToCloudinary = (image, folder) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder, // optional: folder name on Cloudinary
+        resource_type: "auto", // auto-detect file type (image/video)
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    stream.end(image);
+  });
 };

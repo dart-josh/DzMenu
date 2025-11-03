@@ -5,12 +5,6 @@ import { X } from "lucide-react";
 import { formatNumber } from "../utils/formats";
 
 const ProductMealDialog = ({ open, onClose, item }) => {
-  // item shape:
-  // {
-  //   id, title, subtitle, image, price, currency, tags: [],
-  //   description, calories, carbs, protein, fat, variants: [{id,name,price}],
-  // }
-
   const [qty, setQty] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const dialogRef = useRef(null);
@@ -32,11 +26,11 @@ const ProductMealDialog = ({ open, onClose, item }) => {
     function onKey(e) {
       if (e.key === "Escape") onClose?.();
       if (!open) return;
-      if (e.key === "ArrowUp") setQty((q) => Math.min(q + 1, 99));
-      if (e.key === "ArrowDown") setQty((q) => Math.max(q - 1, 1));
+      // if (e.key === "ArrowUp") setQty((q) => Math.min(q + 1, 99));
+      // if (e.key === "ArrowDown") setQty((q) => Math.max(q - 1, 1));
     }
-    // window.addEventListener("keydown", onKey);
-    // return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
   if (!item) return null;
@@ -101,7 +95,7 @@ const ProductMealDialog = ({ open, onClose, item }) => {
 
               {/* Info */}
               <div className="flex w-full flex-col gap-3">
-                {/* Title  subtitle price */}
+                {/* Title subtitle price */}
                 <div className="flex items-start justify-between gap-4">
                   {/* title */}
                   <div>
@@ -152,25 +146,6 @@ const ProductMealDialog = ({ open, onClose, item }) => {
                       ))}
                     </fieldset>
                   )}
-
-                  {/* Quantity */}
-                  {/* <div className="ml-auto flex items-center gap-2">
-                    <button
-                      aria-label="Decrease quantity"
-                      onClick={() => setQty((q) => Math.max(1, q - 1))}
-                      className="w-9 h-9 rounded-lg border flex items-center justify-center text-lg"
-                    >
-                      −
-                    </button>
-                    <div className="w-12 text-center font-medium">{qty}</div>
-                    <button
-                      aria-label="Increase quantity"
-                      onClick={() => setQty((q) => Math.min(99, q + 1))}
-                      className="w-9 h-9 rounded-lg border flex items-center justify-center text-lg"
-                    >
-                      +
-                    </button>
-                  </div> */}
                 </div>
 
                 {/* description */}

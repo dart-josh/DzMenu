@@ -20,18 +20,26 @@ const CreateProductPage = () => {
     if (name === "image") {
       const file = files[0];
       setFormData((prev) => ({ ...prev, image: file }));
+      //   setFile(file);
       setPreview(URL.createObjectURL(file));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmit = (e) => {
+  //   const [file, setFile] = useState(null);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Product created:", formData);
-    // create_product(storeId, { productDetails: formData });
-    update_product(storeId, { productDetails: formData });
-    alert("✅ Product submitted successfully!");
+
+    const form_data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) form_data.append(key, value);
+    });
+    
+    // console.log("form", form_data);
+    const res = await update_product(storeId, form_data);
+    console.log(res);
   };
 
   return (
@@ -124,7 +132,6 @@ const CreateProductPage = () => {
             rows="3"
             className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             placeholder="Write something about your product..."
-            
           />
         </div>
 
