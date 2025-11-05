@@ -1,179 +1,262 @@
-import { useEffect, useRef } from "react";
-// eslint-disable-next-line no-unused-vars
+/* eslint-disable no-unused-vars */
+import { useState } from "react";
+import {
+  X,
+  Upload,
+  Edit3,
+  Save,
+  Image as ImageIcon,
+  Tag,
+  DollarSign,
+  Layers,
+  Type,
+  AlignLeft,
+} from "lucide-react";
+import { update_product } from "../../helpers/serverHelpers";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Trash, X } from "lucide-react";
-import { formatNumber } from "../../utils/formats";
 
-const ManageProduct = ({ open, onClose, item }) => {
-  const dialogRef = useRef(null);
+const ManageProductDialog = ({ open, onClose, product = {}, storeId }) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [preview, setPreview] = useState(product.image || null);
+  const [formData, setFormData] = useState({
+    productId: product.productId || "",
+    name: product.name || "",
+    price: product.price || "",
+    category: product.category || "",
+    description: product.description || "",
+    image: null,
+  });
 
-  useEffect(() => {
-    if (open) {
-      // lock body scroll
-      document.body.style.overflow = "hidden";
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "image") {
+      const file = files[0];
+      setFormData((prev) => ({ ...prev, image: file }));
+      setPreview(URL.createObjectURL(file));
     } else {
-      document.body.style.overflow = "";
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
 
-    return () => (document.body.style.overflow = "");
-  }, [open, item]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const form_data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) form_data.append(key, value);
+    });
+    const res = await update_product(storeId, form_data);
+    console.log(res);
+    setIsEditMode(false);
+  };
 
-  useEffect(() => {
-    function onKey(e) {
-      if (e.key === "Escape") onClose?.();
-      if (!open) return;
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!item) return null;
+  if (!open) return null;
 
   return (
     <AnimatePresence>
-      {open && (
+      <motion.div
+        className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          aria-hidden={!open}
+          initial={{ y: 40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 40, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 150, damping: 20 }}
+          className="w-full max-w-2xl bg-white/80 dark:bg-zinc-900/80 border border-white/30 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-hidden text-black dark:text-white"
         >
-          {/* backdrop */}
-          <motion.div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
+          {/* Header */}
+          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <ImageIcon className="w-5 h-5 text-blue-500" />
+              Manage Product
+            </h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                  isEditMode
+                    ? "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300"
+                    : "bg-blue-500/20 text-blue-700 dark:text-blue-300"
+                } hover:bg-opacity-30 transition`}
+              >
+                {isEditMode ? "Editing..." : "Edit"}
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
 
-          {/* dialog panel */}
-          <motion.div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${item.name} details`}
-            initial={{ y: 30, scale: 0.98, opacity: 0 }}
-            animate={{ y: 0, scale: 1, opacity: 1 }}
-            exit={{ y: 30, scale: 0.98, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className=""
+          {/* Body */}
+          <form
+            onSubmit={handleSubmit}
+            className="p-6 grid gap-5 overflow-y-auto max-h-[75vh]"
           >
-            <ProductDetail item={item} onClose={onClose} />
-          </motion.div>
+            {/* Product ID */}
+            <InputField
+              icon={<Tag className="w-4 h-4" />}
+              label="Product ID"
+              name="productId"
+              value={formData.productId}
+              onChange={handleChange}
+              disabled={!isEditMode}
+              placeholder="e.g. P001"
+            />
+
+            {/* Product Name */}
+            <InputField
+              icon={<Type className="w-4 h-4" />}
+              label="Product Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              disabled={!isEditMode}
+              placeholder="e.g. Classic Burger"
+            />
+
+            {/* Price & Category */}
+            <div className="grid grid-cols-2 gap-4">
+              <InputField
+                icon={<DollarSign className="w-4 h-4" />}
+                label="Price ($)"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                disabled={!isEditMode}
+                placeholder="e.g. 12.99"
+                type="number"
+              />
+              <SelectField
+                icon={<Layers className="w-4 h-4" />}
+                label="Category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                disabled={!isEditMode}
+              >
+                <option>All</option>
+                <option>Juice</option>
+                <option>Smoothies</option>
+                <option>Burger</option>
+              </SelectField>
+            </div>
+
+            {/* Description */}
+            <TextAreaField
+              icon={<AlignLeft className="w-4 h-4" />}
+              label="Description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              disabled={!isEditMode}
+              placeholder="Write something about your product..."
+            />
+
+            {/* Image */}
+            <div>
+              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                Product Image
+              </label>
+              <label
+                className={`flex items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer transition ${
+                  isEditMode
+                    ? "hover:bg-blue-50 dark:hover:bg-zinc-800 border-blue-400/50"
+                    : "opacity-60 cursor-not-allowed"
+                }`}
+              >
+                <input
+                  type="file"
+                  name="image"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="hidden"
+                  disabled={!isEditMode}
+                />
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="w-28 h-28 object-cover rounded-xl shadow-md"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center text-gray-500">
+                    <Upload className="w-6 h-6 mb-1" />
+                    <span className="text-sm">Upload Image</span>
+                  </div>
+                )}
+              </label>
+            </div>
+
+            {/* Action Button */}
+            {isEditMode && (
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                type="submit"
+                className="mt-4 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2 transition"
+              >
+                <Save className="w-5 h-5" />
+                Save Changes
+              </motion.button>
+            )}
+          </form>
         </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>
   );
 };
 
-const ProductDetail = ({item, onClose}) => {
-  return (
-    <div className="relative max-w-3xl w-full mx-auto rounded-2xl bg-gradient-to-b from-white/80 to-white/60 dark:from-slate-900/80 dark:to-slate-900/60 shadow-2xl border border-white/30 dark:border-slate-700 backdrop-blur-md max-h-screen overflow-auto custom-scrollbar">
-      <div className="flex flex-col sm:flex-row w-full gap-6 p-6">
-        {/* Image + tags */}
-        <div className=" flex items-center justify-center w-full sm:w-[80%]">
-          <div className="relative w-full max-w-[360px]">
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-full h-56 md:h-72 object-cover rounded-xl shadow-lg"
-            />
+/* 🔹 Reusable Input Components */
+const InputField = ({ icon, label, ...props }) => (
+  <div>
+    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">
+      {label}
+    </label>
+    <div className="relative">
+      <span className="absolute left-3 top-2.5 text-gray-500">{icon}</span>
+      <input
+        {...props}
+        className="w-full pl-10 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+      />
+    </div>
+  </div>
+);
 
-            {/* tags */}
-            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-              {(item.tags || []).slice(0, 3).map((t) => (
-                <span
-                  key={t}
-                  className="text-xs font-semibold px-2 py-1 rounded-full bg-white/80 dark:bg-black/60 shadow-sm"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Info */}
-        <div className="flex w-full flex-col gap-3">
-          {/* Title subtitle price */}
-          <div className="flex items-start justify-between gap-4">
-            {/* title */}
-            <div>
-              <h3 className="text-xl sm:text-2xl w-full font-extrabold leading-tight">
-                {item.name}
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                {item.subtitle}
-              </p>
-            </div>
-
-            {/* price */}
-            <div className="text-right">
-              <div className="text-lg font-bold">
-                ₦{formatNumber(item.price)}
-              </div>
-              <div className="text-xs text-slate-500 mt-1">
-                {item.variant ?? "Standard"}
-              </div>
-            </div>
-          </div>
-
-          {/* description */}
-          <div className="prose max-w-none text-slate-700 dark:text-slate-200">
-            <p>{item.description}</p>
-          </div>
-
-          {/* ingredients */}
-          <div className="flex items-center gap-4 mt-2">
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 w-full items-center">
-              {item.ingredients &&
-                item.ingredients.split(",").map((ing, i) => (
-                  <div key={i} className="text-sm">
-                    • {ing}
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* prep time */}
-          {item.prepTime && (
-            <div className="mt-2 text-xs text-slate-300">
-              Prep time: {item.prepTime || ""}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="absolute right-1.5 top-1.5">
-        <ActionButtons onClose={onClose} />
-      </div>
-
-      {/* close button */}
-      {/* <button
-        onClick={onClose}
-        aria-label="Close dialog"
-        className="absolute right-1.5 top-1.5 rounded-full p-1 text-slate-700 hover:bg-white/60 dark:text-slate-200 transition"
+const SelectField = ({ icon, label, children, ...props }) => (
+  <div>
+    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">
+      {label}
+    </label>
+    <div className="relative">
+      <span className="absolute left-3 top-2.5 text-gray-500">{icon}</span>
+      <select
+        {...props}
+        className="w-full pl-10 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
       >
-        <X className="size-5" />
-      </button> */}
+        {children}
+      </select>
     </div>
-  );
-};
+  </div>
+);
 
-const ActionButtons = ({onClose}) => {
-    return <div className="flex items-center justify-end">
-        {/* actions */}
-        <div className="flex items-center justify-end">
-            <Edit className="size-4.5"/>
-            <Trash className="size-4.5"/>
-        </div>
-
-        <div>
-            <X className="size-4.5"/>
-        </div>
+const TextAreaField = ({ icon, label, ...props }) => (
+  <div>
+    <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">
+      {label}
+    </label>
+    <div className="relative">
+      <span className="absolute left-3 top-2.5 text-gray-500">{icon}</span>
+      <textarea
+        {...props}
+        rows="3"
+        className="w-full pl-10 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-60"
+      />
     </div>
-}
+  </div>
+);
 
-export default ManageProduct;
+export default ManageProductDialog;

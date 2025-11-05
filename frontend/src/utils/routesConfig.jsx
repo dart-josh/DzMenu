@@ -24,9 +24,10 @@ const routes = [
       { path: "dashboard", element: <Dashboard /> },
       { path: "store", element: <StoreList /> },
       { path: "store/:storeId", element: <ManageStore /> },
-      { path: "s/:storeId/page", element: <PagesList /> },
-      { path: "s/:storeId/page/:pageId", element: <ManagePage /> },
+      { path: "s/:storeId/p", element: <PagesList /> },
+      { path: "s/:storeId/p/:pageId", element: <ManagePage /> },
       { path: "products", element: <ProductsPage /> },
+      { path: "products/:category", element: <ProductsPage /> },
     ],
   },
 

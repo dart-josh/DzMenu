@@ -9,3 +9,14 @@ export const LogoTile = ({scale = '100', showLogo = true, size = 20, color='whit
     </div>
   );
 };
+
+export const LogoTileLarge = ({showLogo = true}) => {
+  
+  return (
+    <div className={`shadow-lg size-7 flex items-center justify-center border rounded-[6px] border-black/80`}>
+      <div className={`shadow size-5.5 flex items-center justify-center border rounded-[5px] text-black/80 border-black/80 font-semibold text-[11px]`}>
+        {showLogo && 'Dz'}
+      </div>
+    </div>
+  );
+};
