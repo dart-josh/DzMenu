@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Store,
   Upload,
@@ -11,8 +11,11 @@ import {
   FileText,
   Layers,
   AlertCircle,
+  Info,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
+import { sanitizeStoreId, validateString } from "../../utils/generalFns";
 
 const ManageStoreDialog = ({
   open,
@@ -21,14 +24,17 @@ const ManageStoreDialog = ({
   onSave,
   existingIds = [],
 }) => {
-  const [isEditMode, setIsEditMode] = useState(!store?.storeId); // new store starts editable
-  const [error, setError] = useState("");
-  const [preview, setPreview] = useState(store.logo || null);
+  const [isEditMode, setIsEditMode] = useState(true); // new store starts editable
+  const [idError, setIdError] = useState("");
+  const [nameError, setNameError] = useState("");
+
+  const [preview, setPreview] = useState(store?.logo || null);
   const [formData, setFormData] = useState({
-    storeId: store.storeId || "",
-    name: store.name || "",
-    description: store.description || "",
-    segment: store.segment || "",
+    storeId: store?.storeId || "",
+    storeName: store?.storeName || "",
+    shortInfo: store?.shortInfo || "",
+    segment: store?.segment || "",
+    slogan: store?.slogan || "",
     logo: null,
   });
 
@@ -38,28 +44,109 @@ const ManageStoreDialog = ({
       const file = files[0];
       setFormData((prev) => ({ ...prev, logo: file }));
       setPreview(URL.createObjectURL(file));
+    } else if (name === "storeId") {
+      const id = sanitizeStoreId(value);
+      setFormData((prev) => ({ ...prev, storeId: id }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
-
-      if (name === "storeId" && existingIds.includes(value.trim())) {
-        setError("This store ID already exists. Please choose another.");
-      } else {
-        setError("");
-      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (error) return;
+    const { success, error } = checkErrors();
+    if (!success) {
+      return toast.error(error, { id: "error1" });
+    }
+
     const formDataToSend = new FormData();
     Object.entries(formData).forEach(
       ([k, v]) => v && formDataToSend.append(k, v)
     );
 
-    onSave?.(formDataToSend);
-    setIsEditMode(false);
+    onSave?.(formDataToSend, formData);
+    onClose?.();
   };
+
+  const clearErrors = () => {
+    setIdError("");
+    setNameError("");
+  };
+
+  // check all errors
+  const checkErrors = () => {
+    if (!formData.storeName.trim()) {
+      setNameError("Store name cannot be empty");
+      return { error: "Invalid store name", success: false };
+    }
+
+    if (!formData.storeId.trim() || !validateString(formData.storeId)) {
+      setIdError("Invalid store ID");
+      return { error: "Invalid store ID", success: false };
+    }
+
+    if (
+      existingIds.includes(formData.storeId.trim()) &&
+      store?.storeId !== formData.storeId.trim()
+    ) {
+      setIdError("This store ID already exists. Please choose another.");
+      return { error: "Store ID already exists", success: false };
+    }
+
+    return { success: true };
+  };
+
+  // Id error
+  useEffect(() => {
+    if (!formData.storeId.trim() || !validateString(formData.storeId)) {
+      return setIdError("Invalid store ID");
+    } else setIdError("");
+
+    if (
+      existingIds.includes(formData.storeId.trim()) &&
+      store?.storeId !== formData.storeId.trim()
+    ) {
+      setIdError("This store ID already exists. Please choose another.");
+    } else setIdError("");
+  }, [existingIds, formData.storeId, store]);
+
+  // name errors
+  useEffect(() => {
+    if (!formData.storeName.trim()) {
+      setNameError("Store name cannot be empty");
+    } else setNameError("");
+
+    if (!store || !store?.storeId) {
+      const raw_id = formData.storeName.toLowerCase().replaceAll(" ", "-").trim();
+      const id = sanitizeStoreId(raw_id);
+      setFormData((prev) => ({ ...prev, storeId: id }));
+    }
+  }, [formData.storeName, store]);
+
+  useEffect(() => {
+    const startEdit = true;
+    setIsEditMode(startEdit);
+    clearErrors();
+    setFormData({
+      storeId: store?.storeId || "",
+      storeName: store?.storeName || "",
+      shortInfo: store?.shortInfo || "",
+      segment: store?.segment || "",
+      slogan: store?.slogan || "",
+      logo: null,
+    });
+  }, [open, store]);
+
+  useEffect(() => {
+    if (open) {
+      // lock body scroll
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => (document.body.style.overflow = "");
+  }, [open]);
 
   if (!open) return null;
 
@@ -87,12 +174,12 @@ const ManageStoreDialog = ({
             <div className="flex items-center gap-2">
               {store?.storeId && (
                 <button
-                  onClick={() => setIsEditMode(!isEditMode)}
+                  // onClick={() => setIsEditMode(!isEditMode)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
                     isEditMode
                       ? "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300"
                       : "bg-indigo-500/20 text-indigo-700 dark:text-indigo-300"
-                  } hover:bg-opacity-30 transition`}
+                  } hover:bg-opacity-30 transition hidden xs:flex`}
                 >
                   {isEditMode ? "Editing..." : "Edit"}
                 </button>
@@ -109,69 +196,88 @@ const ManageStoreDialog = ({
           {/* Body */}
           <form
             onSubmit={handleSubmit}
-            className="p-6 grid gap-5 overflow-y-auto max-h-[75vh]"
+            className="p-3 xs:p-6 pb-6 grid grid-cols-1 gap-5 overflow-y-auto max-h-[75vh]"
           >
-            {/* Store ID */}
-            <InputField
-              icon={<Building2 className="w-4 h-4" />}
-              label="Store ID"
-              name="storeId"
-              value={formData.storeId}
-              onChange={handleChange}
-              disabled={!isEditMode}
-              placeholder="e.g. store_001"
-              error={error}
-            />
+            {/* store id &  name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Store Name */}
+              <InputField
+                icon={<Type className="w-4 h-4" />}
+                label="Store Name"
+                name="storeName"
+                value={formData.storeName}
+                onChange={handleChange}
+                disabled={!isEditMode}
+                placeholder="e.g. Luna Cafe"
+                error={nameError}
+              />
 
-            {/* Store Name */}
-            <InputField
-              icon={<Type className="w-4 h-4" />}
-              label="Store Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              disabled={!isEditMode}
-              placeholder="e.g. Luna Cafe"
-            />
+              {/* Store ID */}
+              <InputField
+                icon={<Building2 className="w-4 h-4" />}
+                label="Store ID"
+                name="storeId"
+                value={formData.storeId}
+                onChange={handleChange}
+                disabled={!isEditMode || store?.storeId}
+                placeholder="e.g. store_001"
+                error={idError}
+              />
+            </div>
+
+            {/* slogan & segment */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Store Slogan */}
+              <InputField
+                icon={<Info className="w-4 h-4" />}
+                label="Slogan"
+                name="slogan"
+                value={formData.slogan}
+                onChange={handleChange}
+                disabled={!isEditMode}
+                placeholder="e.g. Great taste good health"
+              />
+
+              {/* Segment (selectable + input) */}
+              <div>
+                <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">
+                  Segment
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3.5 text-gray-500">
+                    <Layers className="w-4 h-4" />
+                  </span>
+                  <input
+                    list="segment-options"
+                    name="segment"
+                    value={formData.segment}
+                    onChange={handleChange}
+                    placeholder="e.g. Restaurant, Lounge, Boutique..."
+                    disabled={!isEditMode}
+                    className="w-full pl-10 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                  />
+                  <datalist id="segment-options">
+                    <option value="Fruit Drink" />
+                    <option value="Restaurant" />
+                    <option value="Lounge" />
+                    <option value="Supermarket" />
+                    <option value="Art Gallery" />
+                    <option value="Boutique" />
+                  </datalist>
+                </div>
+              </div>
+            </div>
 
             {/* Store Description */}
             <TextAreaField
               icon={<FileText className="w-4 h-4" />}
               label="Description"
-              name="description"
-              value={formData.description}
+              name="shortInfo"
+              value={formData.shortInfo}
               onChange={handleChange}
               disabled={!isEditMode}
               placeholder="Write something about your store..."
             />
-
-            {/* Segment (selectable + input) */}
-            <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">
-                Segment
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-gray-500">
-                  <Layers className="w-4 h-4" />
-                </span>
-                <input
-                  list="segment-options"
-                  name="segment"
-                  value={formData.segment}
-                  onChange={handleChange}
-                  placeholder="e.g. Restaurant, Lounge, Boutique..."
-                  disabled={!isEditMode}
-                  className="w-full pl-10 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-                />
-                <datalist id="segment-options">
-                  <option value="Restaurant" />
-                  <option value="Lounge" />
-                  <option value="Supermarket" />
-                  <option value="Art Gallery" />
-                  <option value="Boutique" />
-                </datalist>
-              </div>
-            </div>
 
             {/* Store Logo */}
             <div>
@@ -233,7 +339,7 @@ const InputField = ({ icon, label, error, ...props }) => (
       {label}
     </label>
     <div className="relative">
-      <span className="absolute left-3 top-2.5 text-gray-500">{icon}</span>
+      <span className="absolute left-3 top-3.5 text-gray-500">{icon}</span>
       <input
         {...props}
         className={`w-full pl-10 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 ${
@@ -255,7 +361,7 @@ const TextAreaField = ({ icon, label, ...props }) => (
       {label}
     </label>
     <div className="relative">
-      <span className="absolute left-3 top-2.5 text-gray-500">{icon}</span>
+      <span className="absolute left-3 top-3.5 text-gray-500">{icon}</span>
       <textarea
         {...props}
         rows="3"

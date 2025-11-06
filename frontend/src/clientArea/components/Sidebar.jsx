@@ -1,8 +1,10 @@
-import { Book, LayoutDashboard, Store } from "lucide-react";
+import { Book, LayoutDashboard, Store, StoreIcon } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { LogoTileLarge } from "../../components/LogoTile";
+import { useClientStore } from "../../store/useClientStore";
 
-const Sidebar = ({setIsSidebarOpen, isSidebarOpen}) => {
+const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
+  const { activeStore } = useClientStore();
   const sideItems = [
     {
       link: "/client/dashboard",
@@ -16,7 +18,13 @@ const Sidebar = ({setIsSidebarOpen, isSidebarOpen}) => {
       sub: [
         { link: "/client/store/del", title: "Delightsome" },
         { link: "/client/store/bokku", title: "Bokku Mart" },
+        activeStore
+          ? { link: "/client/store/bokku", title: "Bokku Mart" }
+          : null,
       ],
+    },
+    activeStore && {
+      store: activeStore.storeName ?? '',
     },
     {
       link: "/client/s/del/p",
@@ -42,7 +50,7 @@ const Sidebar = ({setIsSidebarOpen, isSidebarOpen}) => {
 
   const closeSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
-  }
+  };
 
   return (
     <div className="flex flex-col h-full w-[250px] md:w-[210px] lg:w-[250px] pt-4 pl-2 md:pl-3 lg:pl-4">
@@ -54,10 +62,15 @@ const Sidebar = ({setIsSidebarOpen, isSidebarOpen}) => {
         {sideItems.map((item, i) => (
           <div key={i}>
             <ItemTile closeSidebar={closeSidebar} item={item} />
-            {item.sub && item.sub.length > 0 && (
+            {item?.sub && item?.sub?.length && (
               <div className="mt-2 space-y-1">
                 {item.sub.map((sub, j) => (
-                  <ItemTile closeSidebar={closeSidebar} key={j} item={sub} isSub />
+                  <ItemTile
+                    closeSidebar={closeSidebar}
+                    key={j}
+                    item={sub}
+                    isSub
+                  />
                 ))}
               </div>
             )}
@@ -70,12 +83,24 @@ const Sidebar = ({setIsSidebarOpen, isSidebarOpen}) => {
       </div>
     </div>
   );
-}
+};
 
 const ItemTile = ({ item, isSub = false, closeSidebar }) => {
   const { pathname } = useLocation();
+
+  if (!item) return;
+
+  if (!item.link && item.store)
+    return (
+      <div className="border-y mt-3 py-2 items-center flex gap-2 w-full text-sm">
+        <Store className="size-4" />
+        <span className="truncate">{item.store}</span>
+      </div>
+    );
+
   const isActive = pathname.startsWith(item.link);
   const isSubActive = pathname === item.link && isSub;
+
   return (
     <Link
       to={item.link}
@@ -87,7 +112,9 @@ const ItemTile = ({ item, isSub = false, closeSidebar }) => {
           ? "hover:bg-white/70 hover:shadow-md hover:text-black/80 text-gray-800/90"
           : ""
       } ${
-        isSubActive ? "underline text-green-950 font-semibold" : "hover:text-green-950 hover:font-semibold"
+        isSubActive
+          ? "underline text-green-950 font-semibold"
+          : "hover:text-green-950 hover:font-semibold"
       }  transition duration-300  ${
         isSub ? "text-gray-800/90 px-2 py-1 pl-10" : "font-semibold px-2 py-2"
       } text-[16px] rounded-lg  cursor-pointer flex items-center gap-2`}

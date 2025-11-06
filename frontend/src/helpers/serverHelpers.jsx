@@ -8,7 +8,7 @@ const server_prefix = dev_mode ? "http://localhost:5000/api/v1" : "/api/v1";
 
 // create store
 export const create_store = async (data) => {
-  // const data = {storeId, storeName, storeType, address}
+  // const data = {storeId, storeName, storeSegment, slogan, shortInfo}
   try {
     const response = await axios.post(
       `${server_prefix}/store/create_store`,
@@ -29,7 +29,6 @@ export const create_store = async (data) => {
   }
 };
 
-// update store
 export const update_store = async (data) => {
   // const data = {storeId, storeName, storeType, address}
   try {

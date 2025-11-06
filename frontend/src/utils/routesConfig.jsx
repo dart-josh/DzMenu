@@ -1,5 +1,4 @@
 import ClientLayout from "../clientArea/ClientLayout";
-import CreateProductPage from "../clientArea/CreateProductPage";
 import ManageStore from "../clientArea/pages/ManageStore";
 import Dashboard from "../clientArea/pages/Dashboard";
 import FetchPageDetails from "../wrappers/FetchPageDetails";
@@ -12,7 +11,7 @@ import ManagePage from "../clientArea/pages/ManagePage";
 const routes = [
   {
     path: "/",
-    element: <>Home</>,
+    element: <div className="flex w-full h-screen items-center justify-center">Welcome to DzVista</div>,
   },
 
   // client,
@@ -32,25 +31,16 @@ const routes = [
   },
 
   // admin,
-
-  // Manage store
   {
-    path: "client/store/:storeId",
-    element: (
-      <RequireAuth>
-        <ClientLayout />
-      </RequireAuth>
-    ),
+    path: "admin",
+    element: <ClientLayout />,
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: "dashboard", element: <Dashboard /> },
+    ],
   },
 
-  {
-    path: "client/store/:storeId/create_product",
-    element: (
-      <RequireAuth>
-        <CreateProductPage />
-      </RequireAuth>
-    ),
-  },
+  // Web pages
   {
     path: "*",
     element: <FetchPageDetails />,

@@ -4,7 +4,7 @@ import { getTenantConnection } from "../../utils/tenantManager.js";
 // create store
 export const create_store = async (req, res) => {
   try {
-    const { storeId, storeName, storeType, address } = req.body;
+    const { storeId, storeName, storeSegment, slogan, shortInfo } = req.body;
     const dbName = `store_${storeId}`;
 
     const user = req.user;
@@ -20,7 +20,15 @@ export const create_store = async (req, res) => {
       return res.status(400).json({ error: "Store already exist" });
 
     // Save store record
-    await Store.create({ storeId, dbName, storeName, storeType, address, user });
+    await Store.create({
+      storeId,
+      dbName,
+      storeName,
+      storeSegment,
+      slogan,
+      shortInfo,
+      user,
+    });
 
     // Initialize DB (optional)
     const conn = await getTenantConnection(dbName);
@@ -90,7 +98,6 @@ export const get_stores = async (req, res) => {
     console.error("❌ Error in v1 store.controller get_stores:", err);
     res.status(500).json({ error: "Server error" });
   }
-
 };
 
 // delete store

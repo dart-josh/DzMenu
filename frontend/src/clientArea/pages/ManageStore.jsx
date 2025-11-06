@@ -1,4 +1,4 @@
-import { FileText, Image, Star, } from "lucide-react";
+import { FileText, Image, Star } from "lucide-react";
 import {
   Cog,
   Copy,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import CategoryManager from "../components/CategoryManager";
 
 const ManageStore = () => {
   const { storeId } = useParams();
@@ -27,6 +28,7 @@ const ManageStore = () => {
       <StoreDetails />
       <Pages />
       <Products />
+      <CategoryManager />
       <StoreSettings />
       <DeleteZone />
     </div>
@@ -46,9 +48,7 @@ const StoreDetails = () => {
             <h2 className="text-2xl font-bold text-gray-800">
               Delightsome Juice & Smoothies
             </h2>
-            <p className="text-gray-500 italic mt-1">
-              Opened since July 2025
-            </p>
+            <p className="text-gray-500 italic mt-1">Opened since July 2025</p>
           </div>
         </div>
 
@@ -91,7 +91,7 @@ const Pages = () => {
   return (
     <div>
       <SectionHeader icon={<LayoutGrid />} title="Pages" color="blue" />
-      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-white px-5 py-5 border border-blue-100 shadow-sm">
+      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-white px-3 xs:px-5 py-5 border border-blue-100 shadow-sm">
         <div className="flex w-full overflow-x-auto pb-4 gap-4">
           {pages.map((page, i) => (
             <div
@@ -125,7 +125,7 @@ const Products = () => {
   return (
     <div>
       <SectionHeader icon={<ShoppingBag />} title="Products" color="emerald" />
-      <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white px-5 py-5 border border-emerald-100 shadow-sm">
+      <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white px-3 xs:px-5 py-5 border border-emerald-100 shadow-sm">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {products.map((prod, i) => (
             <div
@@ -177,11 +177,7 @@ const StoreSettings = () => {
 const DeleteZone = () => {
   return (
     <div>
-      <SectionHeader
-        icon={<TriangleAlert />}
-        title="Danger Zone"
-        color="red"
-      />
+      <SectionHeader icon={<TriangleAlert />} title="Danger Zone" color="red" />
       <p className="mb-4 max-w-[500px] text-gray-600 text-sm">
         Deleting this store is permanent. All associated pages, products, and
         data will be removed and cannot be recovered.

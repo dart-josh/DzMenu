@@ -9,8 +9,8 @@ const PagesList = () => {
   ];
 
   return (
-    <div className="w-full py-10">
-      <div className="w-full rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100 shadow-md px-6 py-8">
+    <div className="w-full py-10 pt-5">
+      <div className="w-full rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100 shadow-md px-3 xs:px-6 py-5 xs:py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {pages.map((page) => (
             <PageTile key={page.id} page={page} />

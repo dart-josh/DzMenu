@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   X,
   Upload,
@@ -48,6 +48,17 @@ const ManageProductDialog = ({ open, onClose, product = {}, storeId }) => {
     console.log(res);
     setIsEditMode(false);
   };
+
+  useEffect(() => {
+    if (open) {
+      // lock body scroll
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => (document.body.style.overflow = "");
+  }, [open]);
 
   if (!open) return null;
 

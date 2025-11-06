@@ -1,64 +1,3 @@
-// import { Plus } from "lucide-react";
-
-// const ProductsPage = () => {
-//   return (
-//     <div className="w-full py-10">
-//       {/* categories */}
-//       <div className="flex gap-5 overflow-x-auto custom-scrollbar pb-3 w-full">
-//         {["Smoothies", "Juice", "Whole foods", "Groceries", "Smoothies", "Juice", 'Bread'].map(
-//           (category, i) => (
-//             <div key={i}>
-//               <CategoryTile category={category} />
-//             </div>
-//           )
-//         )}
-//       </div>
-//       <div className="font-semibold text-2xl text-black/80 mt-3 mb-3">
-//         Smoothies
-//       </div>
-
-//       <div className="w-full rounded-lg h-fit bg-white/70 px-6 py-6">
-//         <div className="grid grid-cols-2 w-full pb-4 gap-6">
-//           {(true &&
-//             [1, 2, 3, 4, 5, 6, 7, 8].map((page, i) => (
-//               <div
-//                 key={i}
-//                 className="min-w-[100px] bg-neutral-600/60 rounded-sm h-[40px]"
-//               ></div>
-//             ))) || <AddNewButton empty={true} />}
-//         </div>
-
-//         {true && <AddNewButton label={"Add product"} />}
-//       </div>
-//     </div>
-//   );
-// };
-
-// const AddNewButton = ({ empty = false, label }) => {
-//   return (
-//     <div
-//       className={`flex cursor-pointer rounded font-semibold items-center bg-white shadow-sm text-black/80 gap-2 px-2 ${
-//         empty
-//           ? " justify-center text-center flex-col h-[100px] w-[150px]"
-//           : "h-10 w-[200px] flex-row mt-10"
-//       }`}
-//     >
-//       <Plus />
-//       {label}
-//     </div>
-//   );
-// };
-
-// const CategoryTile = ({ category }) => {
-//   return (
-//     <div className="rounded px-4 py-1 flex items-center bg-white shadow-sm text-black/80 min-w-[130px] text-center justify-center">
-//       {category}
-//     </div>
-//   );
-// };
-
-// export default ProductsPage;
-
 import {
   Plus,
   Grid,
@@ -148,9 +87,9 @@ const ProductsPage = () => {
   ];
 
   return (
-    <div className="w-full py-10">
+    <div className="w-full py-10 pt-5">
       {/* 🟩 Categories */}
-      <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-3 w-full">
+      <div className="flex gap-3 xs:gap-4 overflow-x-auto custom-scrollbar pb-2 xs:pb-3 w-full">
         {categories.map((cat, i) => (
           <Link
             key={i}
@@ -167,7 +106,7 @@ const ProductsPage = () => {
       {/* 🏷 Current Category */}
       <div className="flex items-center justify-between mt-5 mb-3">
         <div className="font-semibold text-2xl text-gray-800 capitalize">
-          {category || "All products"}
+          {category.replaceAll('_', ' ') || "All products"}
         </div>
 
         {/* Toggle View */}
@@ -196,9 +135,9 @@ const ProductsPage = () => {
       </div>
 
       {/* 🛍 Product Section */}
-      <div className="w-full rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100 shadow-sm px-6 py-6">
+      <div className="w-full rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100 shadow-sm px-3 xs:px-6 py-4 xs:py-6">
         {viewMode === "grid" ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 xs:gap-6">
             {products.map((product) => (
               <ProductTile
                 key={product.id}
@@ -230,7 +169,7 @@ const ProductsPage = () => {
 const CategoryTile = ({ category, active }) => {
   return (
     <div
-      className={`flex items-center gap-2 px-5 py-2 min-w-[130px] rounded-full border text-sm font-medium transition-all cursor-pointer shadow-sm 
+      className={`flex items-center gap-2 px-5 py-2 max-w-fit truncate rounded-full border text-sm font-medium transition-all cursor-pointer shadow-sm 
         ${
           active
             ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-md"
@@ -254,16 +193,11 @@ const ProductTile = ({ product, setOpen }) => {
         onClick={() => setOpen(true)}
         src={product.image}
         alt={product.name}
-        className="h-40 w-full object-cover transition-transform duration-200 group-hover:scale-105"
+        className="h-30 xs:h-40 w-full object-cover transition-transform duration-200 group-hover:scale-105"
       />
       <div className="p-4 flex flex-col justify-between">
         <h3 className="font-semibold text-gray-800 truncate">{product.name}</h3>
         <div className="text-sm text-gray-600 mt-1">₦{product.price}</div>
-        <div className="flex items-center justify-end gap-2 mt-3 opacity-0 group-hover:opacity-100 transition">
-          <Edit3 className="w-4 h-4 text-gray-500 hover:text-blue-500 cursor-pointer" />
-          <Eye className="w-4 h-4 text-gray-500 hover:text-green-500 cursor-pointer" />
-          <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500 cursor-pointer" />
-        </div>
       </div>
     </div>
   );
@@ -286,9 +220,7 @@ const ProductRow = ({ product, setOpen }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 text-gray-500">
-        <Edit3 className="w-4 h-4 hover:text-blue-500 cursor-pointer" />
-        <Eye className="w-4 h-4 hover:text-green-500 cursor-pointer" />
+      <div className="flex items-center text-gray-500">
         <Trash2 className="w-4 h-4 hover:text-red-500 cursor-pointer" />
       </div>
     </div>
