@@ -1,4 +1,12 @@
-import { FileText, Image, Star } from "lucide-react";
+import {
+  Circle,
+  Dot,
+  EyeOff,
+  FileText,
+  Image,
+  Loader,
+  Star,
+} from "lucide-react";
 import {
   Cog,
   Copy,
@@ -13,30 +21,68 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import CategoryManager from "../components/CategoryManager";
+import { useClientStore } from "../../store/useClientStore";
+import {
+  delete_store,
+  get_store,
+  toggleStoreLive,
+  update_store,
+} from "../../helpers/serverHelpers";
+import { useState } from "react";
+import { formatOpenedSince } from "../../utils/formats";
+import {
+  copyToClipboard,
+  getBaseUrl,
+  scrollToTop,
+} from "../../utils/generalFns";
+import toast from "react-hot-toast";
+import { useGeneralStore } from "../../store/useGeneralStore";
+import ManageStoreDialog from "../dialogs/ManageStore";
+import { notify } from "../../store/useNotificationStore";
 
 const ManageStore = () => {
   const { storeId } = useParams();
+  const { stores } = useClientStore();
+
+  const [store, setStore] = useState(null);
 
   useEffect(() => {
-    // TODO: fetch store details
-  }, [storeId]);
+    const fetchStoreDetails = async () => {
+      if (!stores || !stores.length) {
+        const res = await get_store(storeId);
+        if (res) setStore(res);
+      } else {
+        const res = stores.find((store) => store.storeId === storeId);
+        if (res) setStore(res);
+      }
+    };
+
+    fetchStoreDetails();
+  }, [storeId, stores]);
+
+  useEffect(() => {
+    scrollToTop();
+  }, [store]);
+
+  if (!store)
+    return <div className="w-full flex items-center">Choiii Ewoo</div>;
 
   return (
-    <div className="w-full py-10 space-y-12">
-      <StoreDetails />
+    <div className="w-full py-10 pt-5 space-y-12">
+      <StoreDetails store={store} />
       <Pages />
       <Products />
       <CategoryManager />
-      <StoreSettings />
-      <DeleteZone />
+      <StoreSettings store={store} />
+      <DeleteZone store={store} />
     </div>
   );
 };
 
 // 🟢 Store Details Section
-const StoreDetails = () => {
+const StoreDetails = ({ store }) => {
   return (
     <div className="rounded-2xl bg-gradient-to-br from-teal-50 to-white shadow-lg p-6 border border-teal-100/80">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -46,34 +92,102 @@ const StoreDetails = () => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
-              Delightsome Juice & Smoothies
+              {store?.storeName}
             </h2>
-            <p className="text-gray-500 italic mt-1">Opened since July 2025</p>
+            <p className="text-gray-500 italic mt-1">
+              {formatOpenedSince(store?.createdAt)}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1 text-sm text-gray-700 font-medium shadow-inner">
+        <div
+          onClick={() => copyToClipboard(store?.storeId)}
+          className="flex min-w-fit items-center gap-2 bg-gray-100 rounded-full px-3 py-1 text-sm text-gray-700 font-medium shadow-inner"
+        >
           <span>ID:</span>
-          <span className="font-semibold">delightsome_143</span>
+          <span className="font-semibold">{store?.storeId}</span>
           <Copy className="w-4 h-4 cursor-pointer hover:text-teal-600" />
         </div>
       </div>
 
-      <StoreLink />
+      <StoreLink store={store} />
     </div>
   );
 };
 
 // 🔗 Store Link
-const StoreLink = () => {
+const StoreLink = ({ store }) => {
+  const { updateStore } = useClientStore();
+  const { storeId, storeLive } = store;
+  const { setConfirmDetails } = useGeneralStore();
+
+  const [togglingLive, setTogglingLive] = useState();
+
+  const toggleLive = async () => {
+    setTogglingLive(true);
+    const res = await toggleStoreLive({ storeId, value: !storeLive });
+    setTogglingLive(false);
+
+    const { success, message, store } = res;
+    if (success) {
+      toast.success(message, { id: "success1" });
+    } else {
+      toast.error(message, { id: "error1" });
+    }
+
+    if (store) {
+      updateStore(store);
+    }
+  };
+
+  const openConfirmDialog = () => {
+    const conf = {
+      onConfirm: toggleLive,
+      title: storeLive ? "Hide Store" : "Go Live",
+      description: storeLive
+        ? "You are about to hide your store. All your pages would be hidden. Would you like to proceed?"
+        : "You are about to make this store public. All your pages would be live and accessible.",
+      icon: storeLive ? "warning" : "success",
+      confirmText: storeLive ? "Hide store" : "Go live",
+      cancelText: "Cancel",
+    };
+
+    setConfirmDetails(conf);
+  };
+
   return (
-    <div className="mt-5 inline-flex items-center gap-3 bg-white shadow-md rounded-full px-5 py-2 text-sm text-gray-700 font-medium hover:shadow-lg transition">
-      <Link2 className="w-4 h-4 text-teal-600" />
-      <span className="text-teal-700 font-semibold">delightsome_123</span>
-      <Copy className="w-4 h-4 cursor-pointer hover:text-teal-500" />
-      <div className="flex items-center gap-1 text-green-600 font-medium">
-        <Eye className="w-4 h-4" />
-        <span>Live</span>
+    <div className="mt-5 inline-flex w-fit max-w-full items-center gap-2 xs:gap-3 bg-white shadow-md rounded-full px-5 py-2 text-sm text-gray-700 font-medium hover:shadow-lg transition">
+      <div>
+        <Link2 className="w-4 h-4 text-teal-600" />
+      </div>
+      <span className="text-teal-700 font-semibold truncate">
+        {store?.storeId}
+      </span>
+      <div onClick={() => copyToClipboard(`${getBaseUrl()}/${store?.storeId}`)}>
+        <Copy className="w-4 h-4 cursor-pointer hover:text-teal-500" />
+      </div>
+      <div
+        onClick={openConfirmDialog}
+        className={`${
+          storeLive ? "text-green-600" : "text-amber-600"
+        } font-medium`}
+      >
+        {(togglingLive && (
+          <div className="flex gap-1 ml-3 items-center justify-center animate-pulse">
+            <Circle className="size-2 fill-green-600" />
+            <Circle className="size-2 fill-green-600" />
+            <Circle className="size-2 fill-green-600" />
+          </div>
+        )) || (
+          <div className="flex items-center gap-1">
+            {storeLive ? (
+              <Eye className="w-4 h-4" />
+            ) : (
+              <EyeOff className="w-4 h-4" />
+            )}
+            <span>{storeLive ? "Live" : "Hidden"}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -155,7 +269,57 @@ const Products = () => {
 };
 
 // ⚙ Store Settings Section
-const StoreSettings = () => {
+const StoreSettings = ({ store }) => {
+  const { updateStore } = useClientStore();
+  const { setConfirmDetails } = useGeneralStore();
+
+  const [open, setOpen] = useState(false);
+  const [storeDetails, setStoreDetails] = useState({});
+  const onClose = () => setOpen(false);
+
+  const openManageStore = () => {
+    setStoreDetails(store);
+    setOpen(true);
+  };
+
+  // create/update store
+  const onSave = async (dataToSend, rawData, isCreate) => {
+    let cat;
+    if (!isCreate) {
+      cat = await update_store(dataToSend);
+    }
+
+    if (!cat.success) toast.error(cat.message || "Error", { id: "error1" });
+    else {
+      notify({
+        title: "Store Updated",
+        message: "Your store was successfully updated!",
+        type: "success",
+        duration: 4000,
+      });
+      updateStore(rawData);
+    }
+    return cat.success;
+  };
+
+  const openConfirmDialog = () => {
+    const conf = {
+      onConfirm: handleEdit,
+      title: "Edit Store",
+      description:
+        "You are about to edit this store. Changes made are irreversible.",
+      icon: "warning",
+      confirmText: "Edit",
+      cancelText: "Cancel",
+    };
+
+    setConfirmDetails(conf);
+  };
+
+  const handleEdit = () => {
+    openManageStore(store);
+  };
+
   return (
     <div>
       <SectionHeader icon={<Cog />} title="Store Settings" color="violet" />
@@ -165,16 +329,71 @@ const StoreSettings = () => {
         done.
       </p>
 
-      <button className="flex items-center gap-3 font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg px-4 py-2 transition-all shadow-sm">
+      <button
+        onClick={openConfirmDialog}
+        className="flex items-center gap-3 font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg px-4 py-2 transition-all shadow-sm"
+      >
         <Edit className="w-5 h-5" />
         Edit Store Details
       </button>
+
+      <ManageStoreDialog
+        open={open}
+        onClose={onClose}
+        store={storeDetails}
+        onSave={onSave}
+      />
     </div>
   );
 };
 
 // 🔴 Danger Zone Section
-const DeleteZone = () => {
+const DeleteZone = ({ store }) => {
+  const navigate = useNavigate();
+  const { deleteStore } = useClientStore();
+  const { setConfirmDetails } = useGeneralStore();
+
+  const [deletingStore, setDeletingStore] = useState(false);
+
+  const openConfirmDialog = () => {
+    const conf = {
+      onConfirm: handleDelete,
+      title: "Delete Store",
+      description:
+        "You are about to delete this store. This process is irreversible.",
+      icon: "warning",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    };
+
+    setConfirmDetails(conf);
+  };
+
+  const handleDelete = async () => {
+    setDeletingStore(true);
+    const res = await delete_store(store.storeId);
+    setDeletingStore(false);
+
+    const { success, message } = res;
+    if (success == true) {
+      notify({
+        title: "Store Deleted",
+        message: message,
+        type: "success",
+        duration: 4000,
+      });
+      deleteStore(store.storeId);
+      navigate("/client/store");
+    } else {
+      notify({
+        title: "Error deleting",
+        message: message,
+        type: "error",
+        duration: 4000,
+      });
+    }
+  };
+
   return (
     <div>
       <SectionHeader icon={<TriangleAlert />} title="Danger Zone" color="red" />
@@ -183,9 +402,25 @@ const DeleteZone = () => {
         data will be removed and cannot be recovered.
       </p>
 
-      <button className="flex items-center gap-3 font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg px-4 py-2 transition-all shadow-sm">
-        <Trash2 className="w-5 h-5" />
-        Delete Store
+      <button
+        onClick={openConfirmDialog}
+        disabled={deletingStore}
+        className="font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg px-4 py-2 transition-all shadow-sm"
+      >
+        {deletingStore}
+        {(deletingStore && (
+          <div className="flex items-center justify-center gap-2">
+            <div className="animate-spin">
+              <Loader className="size-5" />
+            </div>
+            Deleting...
+          </div>
+        )) || (
+          <div className="flex items-center justify-center gap-3">
+            <Trash2 className="w-5 h-5" />
+            Delete Store
+          </div>
+        )}
       </button>
     </div>
   );

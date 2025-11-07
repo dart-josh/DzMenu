@@ -1,21 +1,15 @@
-import {
-  Plus,
-  Store,
-  ArrowRight,
-  Settings,
-  Edit3,
-  Eye,
-  ShoppingBag,
-} from "lucide-react";
-import ManageStoreDialog from "../dialogs/ManageStore";
-import { useState } from "react";
+import { Plus, Store, ArrowRight, Edit3, Eye, ShoppingBag } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useClientStore } from "../../store/useClientStore";
 import { Link } from "react-router-dom";
-import ConfirmDialog from "../components/ConfirmDialog";
 import { useGeneralStore } from "../../store/useGeneralStore";
+import { create_store, update_store } from "../../helpers/serverHelpers";
+import toast from "react-hot-toast";
+import ManageStoreDialog from "../dialogs/ManageStore";
+import { notify } from "../../store/useNotificationStore";
 
 const StoreList = () => {
-  const { updateStore, stores } = useClientStore();
+  const { updateStore, getMyStores } = useClientStore();
 
   const [open, setOpen] = useState(false);
 
@@ -28,11 +22,31 @@ const StoreList = () => {
     setOpen(true);
   };
 
-  const onSave = (dataToSend, rawData) => {
-    updateStore(rawData)
-  }
+  // create/update store
+  const onSave = async (dataToSend, rawData, isCreate) => {
+    let cat;
+    if (isCreate) {
+      cat = await create_store(dataToSend);
+    } else {
+      cat = await update_store(dataToSend);
+    }
 
-  const existingIds = stores.map((s) => s.storeId);
+    if (!cat.success) toast.error(cat.message || "Error", { id: "error1" });
+    else {
+      notify({
+        title: "Store Updated",
+        message: "Your store was successfully updated!",
+        type: "success",
+        duration: 4000,
+      });
+      updateStore(rawData);
+    }
+    return cat.success;
+  };
+
+  useEffect(() => {
+    getMyStores();
+  }, [getMyStores]);
 
   return (
     <div className="w-full py-10 pt-5">
@@ -60,7 +74,12 @@ const StoreList = () => {
         </div>
       </div>
 
-      <ManageStoreDialog open={open} onClose={onClose} store={storeDetails} onSave={onSave} existingIds={existingIds} />
+      <ManageStoreDialog
+        open={open}
+        onClose={onClose}
+        store={storeDetails}
+        onSave={onSave}
+      />
     </div>
   );
 };
@@ -90,7 +109,7 @@ const ActiveStore = ({ openManageStore }) => {
   };
 
   return (
-    <div className="w-full bg-white/80 dark:bg-gray-900/70 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-lg">
+    <div className="w-full overflow-hidden bg-white/80 dark:bg-gray-900/70 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-lg">
       {/* Left section: logo and store info */}
       <div className="flex w-full lg:w-fit items-center gap-5 flex-col xs:flex-row justify-center">
         <div className="min-w-20 h-20 rounded-2xl flex items-center justify-center border border-gray-300 shadow-sm">
@@ -98,11 +117,11 @@ const ActiveStore = ({ openManageStore }) => {
           <Store className="size-10 text-blue-500" />
         </div>
         {/* Store info */}
-        <div>
+        <div className="w-full max-w-[300px] overflow-hidden">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 leading-6">
             {store.storeName}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 overflow-hidden">
             {store.shortInfo}
           </p>
           <div className="w-full flex items-center gap-2 mt-4 text-sm flex-col xs:flex-row">
@@ -159,12 +178,38 @@ const Stores = () => {
 };
 
 const StoreTile = ({ store }) => {
-  const { changeStore } = useClientStore();
+  const { changeStore, activeStore } = useClientStore();
+  const { setConfirmDetails } = useGeneralStore();
+
+  const checkIfActive = (storeId) => {
+    const openConfirmDialog = (storeId) => {
+      const conf = {
+        onConfirm: handleChange,
+        title: "Change Store",
+        description: `You are about to change your active store to store with ID ${storeId}`,
+        icon: "warning",
+        confirmText: "Change store",
+        cancelText: "Just view",
+      };
+
+      setConfirmDetails(conf);
+    };
+
+    const handleChange = () => {
+      changeStore(storeId);
+    };
+
+    if (!activeStore?.storeId) {
+      changeStore(storeId);
+    } else if (activeStore?.storeId !== storeId) {
+      openConfirmDialog(storeId);
+    } 
+  };
 
   return (
     <Link
       to={`${store.storeId}`}
-      onClick={() => changeStore(store?.storeId)}
+      onClick={() => checkIfActive(store?.storeId)}
       className="group h-[170px] w-[230px] bg-white shadow-lg rounded-2xl border border-gray-200 hover:border-blue-400 transition-all duration-200 hover:shadow-blue-200/70 flex flex-col overflow-hidden"
     >
       <div className="flex flex-col items-center justify-center h-full px-4 text-center transition-transform duration-300 group-hover:scale-[1.02]">

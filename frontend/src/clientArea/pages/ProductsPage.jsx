@@ -106,7 +106,7 @@ const ProductsPage = () => {
       {/* 🏷 Current Category */}
       <div className="flex items-center justify-between mt-5 mb-3">
         <div className="font-semibold text-2xl text-gray-800 capitalize">
-          {category.replaceAll('_', ' ') || "All products"}
+          {category?.replaceAll('_', ' ') || "All products"}
         </div>
 
         {/* Toggle View */}
@@ -138,9 +138,9 @@ const ProductsPage = () => {
       <div className="w-full rounded-2xl bg-white/70 backdrop-blur-md border border-gray-100 shadow-sm px-3 xs:px-6 py-4 xs:py-6">
         {viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 xs:gap-6">
-            {products.map((product) => (
+            {products.map((product, i) => (
               <ProductTile
-                key={product.id}
+                key={i}
                 product={product}
                 setOpen={setOpen}
               />

@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import { useState } from "react";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { Toaster } from "react-hot-toast";
+import NotificationContainer from "../components/NotificationContainer";
 
 const ClientLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -57,6 +58,7 @@ const ClientLayout = () => {
       )}
 
       <ConfirmDialog />
+      <NotificationContainer />
 
       <Toaster />
     </div>

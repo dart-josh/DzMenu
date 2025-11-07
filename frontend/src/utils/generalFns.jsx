@@ -1,121 +1,36 @@
-export const validateString = (input) => {
-  const str = input.toLowerCase().trim();
+import toast from "react-hot-toast";
 
-  // Expanded forbidden list
-  const forbidden = [
-    // Reserved / admin keywords
-    "client",
-    "admin",
-    "root",
-    "system",
-    "superuser",
-    "user",
-    "users",
-    "staff",
-    "team",
-    "employee",
-    "dashboard",
-    "panel",
-    "settings",
-    "config",
-    "configuration",
-    "control",
-    "manage",
-    "management",
-    "secure",
-    "auth",
-    "authenticate",
-    "login",
-    "logout",
-    "register",
-    "signup",
-    "signin",
-    "account",
-    "profile",
+export const copyToClipboard = (text) => {
+  if (!text) return;
 
-    // CRUD & code-related terms
-    "new",
-    "create",
-    "return",
-    "div",
-    "case",
-    "script",
-    "update",
-    "delete",
-    "remove",
-    "insert",
-    "query",
-    "fetch",
-    "post",
-    "get",
-    "put",
-    "patch",
-    "sql",
-    "api",
-    "json",
-    "ajax",
-    "function",
-    "var",
-    "const",
-    "let",
-    "import",
-    "export",
-    "require",
-    "class",
-    "component",
-    "store",
-    "page",
-    "pages",
-    "category",
-    "categories",
-
-    // System paths
-    "assets",
-    "static",
-    "public",
-    "private",
-    "uploads",
-    "files",
-    "media",
-    "img",
-    "image",
-    "css",
-    "js",
-    "scripts",
-
-    // Security or redirect-related
-    "redirect",
-    "callback",
-    "token",
-    "session",
-    "cookie",
-    "csrf",
-  ];
-
-  for (const word of forbidden) {
-    if (str.includes(word)) {
-      return false;
+  toast('Copied to clipboard', {id: 'copy1'});
+  // Modern async clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  } else {
+    // Fallback for older browsers
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand("copy");
+    } catch (err) {
+      console.error("Failed to copy:", err);
     }
+    document.body.removeChild(textArea);
   }
-
-  // Allow only letters, numbers, '-', and '.'
-  const specialCharRegex = /[^a-zA-Z0-9.-]/;
-  if (specialCharRegex.test(str)) {
-    return false;
-  }
-
-  return true; // ✅ valid
 }
 
-export const sanitizeStoreId = (value) => {
-  if (!value) return "";
-
-  return value
-    .toLowerCase()               // make lowercase
-    .trim()                      // remove surrounding spaces
-    .replace(/[^a-z0-9.-]+/g, "-") // replace invalid chars with "-"
-    .replace(/-+/g, "-")         // collapse multiple dashes
-    .replace(/^-|-$/g, "-")       // trim leading/trailing dashes
-    .slice(0, 25);               // limit to 25 characters
+export const getBaseUrl = () => {
+  const { protocol, host } = window.location;
+  return `${protocol}//${host}`;
 }
+
+export const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 

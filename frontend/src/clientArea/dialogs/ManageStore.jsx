@@ -4,7 +4,6 @@ import {
   Store,
   Upload,
   X,
-  Edit3,
   Save,
   Building2,
   Type,
@@ -12,18 +11,25 @@ import {
   Layers,
   AlertCircle,
   Info,
+  Loader,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
-import { sanitizeStoreId, validateString } from "../../utils/generalFns";
+import {
+  sanitizeStoreId,
+  sanitizeString,
+  validateString,
+} from "../../utils/stringSanitizers";
+import { useClientStore } from "../../store/useClientStore";
 
 const ManageStoreDialog = ({
   open,
   onClose,
   store = {},
   onSave,
-  existingIds = [],
+  // existingIds = [],
 }) => {
+  const { fetchStoreIds, existingIds } = useClientStore();
   const [isEditMode, setIsEditMode] = useState(true); // new store starts editable
   const [idError, setIdError] = useState("");
   const [nameError, setNameError] = useState("");
@@ -38,6 +44,8 @@ const ManageStoreDialog = ({
     logo: null,
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "logo") {
@@ -48,7 +56,16 @@ const ManageStoreDialog = ({
       const id = sanitizeStoreId(value);
       setFormData((prev) => ({ ...prev, storeId: id }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      const limit =
+        name === "shortInfo"
+          ? 150
+          : name === "storeName"
+          ? 50
+          : name === "segment"
+          ? 20
+          : 40;
+      const word = sanitizeString(value, limit);
+      setFormData((prev) => ({ ...prev, [name]: word }));
     }
   };
 
@@ -61,11 +78,14 @@ const ManageStoreDialog = ({
 
     const formDataToSend = new FormData();
     Object.entries(formData).forEach(
-      ([k, v]) => v && formDataToSend.append(k, v)
+      ([k, v]) => formDataToSend.append(k, v)
     );
 
-    onSave?.(formDataToSend, formData);
-    onClose?.();
+    const isCreate = !store?.storeId;
+    setIsLoading(true);
+    const res = await onSave?.(formDataToSend, formData, isCreate);
+    setIsLoading(false);
+    if (res) onClose?.();
   };
 
   const clearErrors = () => {
@@ -77,6 +97,11 @@ const ManageStoreDialog = ({
   const checkErrors = () => {
     if (!formData.storeName.trim()) {
       setNameError("Store name cannot be empty");
+      return { error: "Invalid store name", success: false };
+    }
+
+    if (formData.storeName.trim().length < 4) {
+      setNameError("Store name too short");
       return { error: "Invalid store name", success: false };
     }
 
@@ -96,11 +121,15 @@ const ManageStoreDialog = ({
     return { success: true };
   };
 
+  useEffect(() => {
+    fetchStoreIds();
+  }, [fetchStoreIds]);
+
   // Id error
   useEffect(() => {
     if (!formData.storeId.trim() || !validateString(formData.storeId)) {
       return setIdError("Invalid store ID");
-    } else setIdError("");
+    }
 
     if (
       existingIds.includes(formData.storeId.trim()) &&
@@ -108,20 +137,27 @@ const ManageStoreDialog = ({
     ) {
       setIdError("This store ID already exists. Please choose another.");
     } else setIdError("");
-  }, [existingIds, formData.storeId, store]);
+  }, [existingIds, formData.storeId, store?.storeId]);
 
   // name errors
   useEffect(() => {
     if (!formData.storeName.trim()) {
-      setNameError("Store name cannot be empty");
-    } else setNameError("");
+      return setNameError("Store name cannot be empty");
+    }
 
-    if (!store || !store?.storeId) {
-      const raw_id = formData.storeName.toLowerCase().replaceAll(" ", "-").trim();
+    if (!formData.storeName.trim() || formData.storeName.trim().length < 4) {
+      return setNameError("Store name too short");
+    } setNameError("");
+
+    if (!store?.storeId) {
+      const raw_id = formData.storeName
+        .toLowerCase()
+        .replaceAll(" ", "-")
+        .trim();
       const id = sanitizeStoreId(raw_id);
       setFormData((prev) => ({ ...prev, storeId: id }));
     }
-  }, [formData.storeName, store]);
+  }, [formData.storeName, store?.storeId]);
 
   useEffect(() => {
     const startEdit = true;
@@ -201,25 +237,28 @@ const ManageStoreDialog = ({
             {/* store id &  name */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Store Name */}
-              <InputField
-                icon={<Type className="w-4 h-4" />}
-                label="Store Name"
-                name="storeName"
-                value={formData.storeName}
-                onChange={handleChange}
-                disabled={!isEditMode}
-                placeholder="e.g. Luna Cafe"
-                error={nameError}
-              />
+              <div className={`${store?.storeId ? "order-1" : ""}`}>
+                <InputField
+                  icon={<Type className="w-4 h-4" />}
+                  label="Store Name"
+                  name="storeName"
+                  value={formData.storeName}
+                  onChange={handleChange}
+                  disabled={!isEditMode || isLoading}
+                  placeholder="e.g. Luna Cafe"
+                  error={nameError}
+                />
+              </div>
 
               {/* Store ID */}
+
               <InputField
                 icon={<Building2 className="w-4 h-4" />}
                 label="Store ID"
                 name="storeId"
                 value={formData.storeId}
                 onChange={handleChange}
-                disabled={!isEditMode || store?.storeId}
+                disabled={!isEditMode || store?.storeId || isLoading}
                 placeholder="e.g. store_001"
                 error={idError}
               />
@@ -234,7 +273,7 @@ const ManageStoreDialog = ({
                 name="slogan"
                 value={formData.slogan}
                 onChange={handleChange}
-                disabled={!isEditMode}
+                disabled={!isEditMode || isLoading}
                 placeholder="e.g. Great taste good health"
               />
 
@@ -253,7 +292,7 @@ const ManageStoreDialog = ({
                     value={formData.segment}
                     onChange={handleChange}
                     placeholder="e.g. Restaurant, Lounge, Boutique..."
-                    disabled={!isEditMode}
+                    disabled={!isEditMode || isLoading}
                     className="w-full pl-10 pr-4 py-2 border rounded-xl bg-white/70 dark:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
                   />
                   <datalist id="segment-options">
@@ -275,7 +314,7 @@ const ManageStoreDialog = ({
               name="shortInfo"
               value={formData.shortInfo}
               onChange={handleChange}
-              disabled={!isEditMode}
+              disabled={!isEditMode || isLoading}
               placeholder="Write something about your store..."
             />
 
@@ -297,7 +336,7 @@ const ManageStoreDialog = ({
                   accept="image/*"
                   onChange={handleChange}
                   className="hidden"
-                  disabled={!isEditMode}
+                  disabled={!isEditMode || isLoading}
                 />
                 {preview ? (
                   <img
@@ -319,10 +358,22 @@ const ManageStoreDialog = ({
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 type="submit"
-                className="mt-4 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2 transition"
+                disabled={isLoading}
+                className="mt-4 w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg transition"
               >
-                <Save className="w-5 h-5" />
-                Save Store Details
+                {(isLoading && (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="animate-spin">
+                      <Loader className="size-5" />
+                    </div>
+                    Saving...
+                  </div>
+                )) || (
+                  <div className="flex items-center justify-center gap-2">
+                    <Save className="w-5 h-5" />
+                    Save Store Details
+                  </div>
+                )}
               </motion.button>
             )}
           </form>

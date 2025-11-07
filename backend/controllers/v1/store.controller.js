@@ -4,11 +4,10 @@ import { getTenantConnection } from "../../utils/tenantManager.js";
 // create store
 export const create_store = async (req, res) => {
   try {
-    const { storeId, storeName, storeSegment, slogan, shortInfo } = req.body;
+    const { storeId, storeName, segment, slogan, shortInfo } = req.body;
     const dbName = `store_${storeId}`;
 
     const user = req.user;
-
     if (!storeId || !storeName)
       return res.status(400).json({ error: "Store invalid" });
 
@@ -24,7 +23,7 @@ export const create_store = async (req, res) => {
       storeId,
       dbName,
       storeName,
-      storeSegment,
+      segment,
       slogan,
       shortInfo,
       user,
@@ -43,7 +42,7 @@ export const create_store = async (req, res) => {
 // update store
 export const update_store = async (req, res) => {
   try {
-    const { storeId, storeName, storeType, address } = req.body;
+    const { storeId, storeName, segment, slogan, shortInfo } = req.body;
 
     if (!storeId || !storeName)
       return res.status(400).json({ error: "Store invalid" });
@@ -54,7 +53,7 @@ export const update_store = async (req, res) => {
     // Save store record
     const store = await Store.findOneAndUpdate(
       { storeId },
-      { storeName, storeType, address },
+      { storeName, segment, slogan, shortInfo },
       { new: true }
     );
 
@@ -63,6 +62,33 @@ export const update_store = async (req, res) => {
     res.json({ message: "Store updated", store });
   } catch (error) {
     console.error("❌ Error v1 store.controller update_store:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// storeLive
+export const toggleStoreLive = async (req, res) => {
+  try {
+    const { storeId, value } = req.body;
+
+    if (!storeId)
+      return res.status(400).json({ error: "Store invalid" });
+
+    const store_exist = await Store.findOne({ storeId });
+    if (!store_exist) return res.status(404).json({ error: "Store not found" });
+
+    // Save store record
+    const store = await Store.findOneAndUpdate(
+      { storeId },
+      { storeLive: value },
+      { new: true }
+    );
+
+    store.dbName = undefined;
+
+    res.json({ message: `Store ${value ? 'live': 'hidden'}`, store });
+  } catch (error) {
+    console.error("❌ Error v1 store.controller toggleStoreLive:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -118,3 +144,17 @@ export const delete_store = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+// fetch all store id
+export const fetch_storeIds = async (req, res) => {
+  try {
+    const stores = await Store.find({}).select("storeId");
+    
+    const storeIds = stores.map((s) => s.storeId);
+
+    res.json(storeIds);
+  } catch (err) {
+    console.error("❌ Error in v1 store.controller get_stores:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+}

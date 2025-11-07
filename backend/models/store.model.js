@@ -6,7 +6,7 @@ const storeSchema = new mongoose.Schema(
     storeId: { type: String, unique: true, required: true },
     dbName: { type: String, required: true, unique: true },
     storeName: { type: String, required: true },
-    storeSegment: String,
+    segment: String,
     slogan: String,
     shortInfo: String,
     storeLive: Boolean,

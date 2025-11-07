@@ -12,7 +12,12 @@ export const create_store = async (data) => {
   try {
     const response = await axios.post(
       `${server_prefix}/store/create_store`,
-      data
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // ✅ required for axios
+        },
+      }
     );
 
     return {
@@ -51,6 +56,28 @@ export const update_store = async (data) => {
   }
 };
 
+export const toggleStoreLive = async (data) => {
+  // const data = {storeId, value}
+  try {
+    const response = await axios.post(
+      `${server_prefix}/store/toggleStoreLive`,
+      data
+    );
+
+    return {
+      success: true,
+      message: response.data.message,
+      store: response.data.store,
+    };
+  } catch (error) {
+    console.log("Error in toggleStoreLive function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
 // get store
 export const get_store = async (storeId) => {
   try {
@@ -73,6 +100,18 @@ export const get_stores = async () => {
     return response.data;
   } catch (error) {
     console.log("Error in get_stores function - ", error);
+    return null;
+  }
+};
+
+// fetch_storeIds
+export const fetch_storeIds = async () => {
+  try {
+    const response = await axios.get(`${server_prefix}/store/fetch_storeIds`);
+
+    return response.data;
+  } catch (error) {
+    console.log("Error in fetch_storeIds function - ", error);
     return null;
   }
 };

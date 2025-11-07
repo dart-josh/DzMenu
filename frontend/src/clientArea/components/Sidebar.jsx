@@ -2,10 +2,13 @@ import { Book, LayoutDashboard, Store, StoreIcon } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { LogoTileLarge } from "../../components/LogoTile";
 import { useClientStore } from "../../store/useClientStore";
+import { useEffect } from "react";
+import { useState } from "react";
+import { useGeneralStore } from "../../store/useGeneralStore";
 
 const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
-  const { activeStore } = useClientStore();
-  const sideItems = [
+  const { activeStore, stores, getMyStores } = useClientStore();
+  const [sideItems, setSideItems] = useState([
     {
       link: "/client/dashboard",
       icon: <LayoutDashboard className="size-5" />,
@@ -15,16 +18,10 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
       link: "/client/store",
       icon: <Store className="size-5" />,
       title: "Store",
-      sub: [
-        { link: "/client/store/del", title: "Delightsome" },
-        { link: "/client/store/bokku", title: "Bokku Mart" },
-        activeStore
-          ? { link: "/client/store/bokku", title: "Bokku Mart" }
-          : null,
-      ],
     },
-    activeStore && {
-      store: activeStore.storeName ?? '',
+    {
+      title: "Active",
+      store: "",
     },
     {
       link: "/client/s/del/p",
@@ -46,11 +43,48 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
         { link: "/client/products/whole_foods", title: "Whole foods" },
       ],
     },
-  ];
+  ]);
 
   const closeSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  useEffect(() => {
+    const item = {
+      link: "/client/store",
+      icon: <Store className="size-5" />,
+      title: "Store",
+      sub: stores.map((store, i) => ({
+        link: `/client/store/${store.storeId}`,
+        title: store.storeName,
+        id: i,
+      })),
+    };
+
+    const updatedList = sideItems.map((store) =>
+      store?.title === "Store"
+        ? { ...item } // modify the object here
+        : store
+    );
+
+    setSideItems(updatedList);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stores]);
+
+  useEffect(() => {
+    const updatedList = sideItems.map((store) =>
+      store?.title === "Active"
+        ? { ...store, store: activeStore?.storeName || "" } // modify the object here
+        : store
+    );
+
+    setSideItems(updatedList);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStore]);
+
+  useEffect(() => {
+    getMyStores();
+  }, [getMyStores]);
 
   return (
     <div className="flex flex-col h-full w-[250px] md:w-[210px] lg:w-[250px] pt-4 pl-2 md:pl-3 lg:pl-4">
@@ -62,7 +96,7 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
         {sideItems.map((item, i) => (
           <div key={i}>
             <ItemTile closeSidebar={closeSidebar} item={item} />
-            {item?.sub && item?.sub?.length && (
+            {(item?.sub && item?.sub?.length && (
               <div className="mt-2 space-y-1">
                 {item.sub.map((sub, j) => (
                   <ItemTile
@@ -73,7 +107,8 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
                   />
                 ))}
               </div>
-            )}
+            )) ||
+              ""}
           </div>
         ))}
       </nav>
@@ -86,25 +121,61 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
 };
 
 const ItemTile = ({ item, isSub = false, closeSidebar }) => {
+  const { changeStore, activeStore } = useClientStore();
+  const { setConfirmDetails } = useGeneralStore();
   const { pathname } = useLocation();
 
   if (!item) return;
 
-  if (!item.link && item.store)
-    return (
-      <div className="border-y mt-3 py-2 items-center flex gap-2 w-full text-sm">
-        <Store className="size-4" />
-        <span className="truncate">{item.store}</span>
-      </div>
-    );
+  if (item.title == "Active")
+    if (!item.link && item.store)
+      return (
+        <div className="border-y mt-3 py-2 items-center flex gap-2 w-full text-sm">
+          <Store className="size-4" />
+          <span className="truncate w-full">{item.store}</span>
+        </div>
+      );
+    else return;
 
   const isActive = pathname.startsWith(item.link);
   const isSubActive = pathname === item.link && isSub;
 
+  const checkIfActive = (link) => {
+    if (!isSub) return;
+    if (!item?.link?.includes("client/store")) return;
+
+    const openConfirmDialog = (storeId) => {
+      const conf = {
+        onConfirm: handleChange,
+        title: "Change Store",
+        description: `You are about to change your active store to store with ID ${storeId}`,
+        icon: "warning",
+        confirmText: "Change store",
+        cancelText: "Just view",
+      };
+
+      setConfirmDetails(conf);
+    };
+
+    const handleChange = () => {
+      changeStore(storeId);
+    };
+
+    const storeId = link.split("/").pop();
+    if (!activeStore?.storeId) {
+      changeStore(storeId);
+    } else if (activeStore?.storeId !== storeId) {
+      openConfirmDialog(storeId);
+    }
+  };
+
   return (
     <Link
       to={item.link}
-      onClick={closeSidebar}
+      onClick={() => {
+        closeSidebar();
+        checkIfActive(item.link);
+      }}
       className={`${
         isActive && !isSub
           ? "bg-white/70 shadow-md text-black/80"
