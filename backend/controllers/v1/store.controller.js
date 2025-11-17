@@ -1,3 +1,4 @@
+import cloudinary, { uploadToCloudinary } from "../../lib/cloudinary.js";
 import { Store } from "../../models/store.model.js";
 import { getTenantConnection } from "../../utils/tenantManager.js";
 
@@ -18,8 +19,13 @@ export const create_store = async (req, res) => {
     if (store_exist)
       return res.status(400).json({ error: "Store already exist" });
 
+    let storeImage = "";
+    if (req.file) {
+      storeImage = await addUpdateStoreImage(req.file.buffer, storeId);
+    }
+
     // Save store record
-    await Store.create({
+    const store = await Store.create({
       storeId,
       dbName,
       storeName,
@@ -27,12 +33,13 @@ export const create_store = async (req, res) => {
       slogan,
       shortInfo,
       user,
+      storeImage,
     });
 
     // Initialize DB (optional)
     const conn = await getTenantConnection(dbName);
 
-    res.json({ message: "Store created", storeId });
+    res.json({ message: "Store created", store });
   } catch (error) {
     console.error("❌ Error v1 store.controller create_store:", error);
     res.status(500).json({ error: "Server error" });
@@ -42,7 +49,8 @@ export const create_store = async (req, res) => {
 // update store
 export const update_store = async (req, res) => {
   try {
-    const { storeId, storeName, segment, slogan, shortInfo } = req.body;
+    const { storeId, storeName, segment, slogan, shortInfo, deleteImage } =
+      req.body;
 
     if (!storeId || !storeName)
       return res.status(400).json({ error: "Store invalid" });
@@ -50,10 +58,29 @@ export const update_store = async (req, res) => {
     const store_exist = await Store.findOne({ storeId });
     if (!store_exist) return res.status(404).json({ error: "Store not found" });
 
+    let storeImage = "";
+    if (req.file) {
+      if (store_exist.storeImage) {
+        const deleted = await deleteStoreImage(store_exist.storeImage, storeId);
+        if (!deleted)
+          return res.status(400).json({ error: "Error updating image" });
+      }
+
+      storeImage = await addUpdateStoreImage(req.file.buffer, storeId);
+    }
+
+    if (deleteImage && !req.file) {
+      const deleted = await deleteStoreImage(store_exist.storeImage, storeId);
+      if (!deleted)
+        return res.status(400).json({ error: "Error updating image" });
+
+      storeImage = "";
+    }
+
     // Save store record
     const store = await Store.findOneAndUpdate(
       { storeId },
-      { storeName, segment, slogan, shortInfo },
+      { storeName, segment, slogan, shortInfo, storeImage },
       { new: true }
     );
 
@@ -71,8 +98,7 @@ export const toggleStoreLive = async (req, res) => {
   try {
     const { storeId, value } = req.body;
 
-    if (!storeId)
-      return res.status(400).json({ error: "Store invalid" });
+    if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
     const store_exist = await Store.findOne({ storeId });
     if (!store_exist) return res.status(404).json({ error: "Store not found" });
@@ -86,7 +112,7 @@ export const toggleStoreLive = async (req, res) => {
 
     store.dbName = undefined;
 
-    res.json({ message: `Store ${value ? 'live': 'hidden'}`, store });
+    res.json({ message: `Store ${value ? "live" : "hidden"}`, store });
   } catch (error) {
     console.error("❌ Error v1 store.controller toggleStoreLive:", error);
     res.status(500).json({ error: "Server error" });
@@ -133,6 +159,13 @@ export const delete_store = async (req, res) => {
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
+    const oldStore = await Store.findOne({ storeId });
+    if (!oldStore) return res.status(404).json({ error: "Store not found" });
+
+    if (oldStore.storeImage) {
+      await deleteStoreImage(oldStore.storeImage, storeId);
+    }
+
     const result = await Store.deleteOne({ storeId });
 
     if (result.deletedCount === 0)
@@ -149,7 +182,7 @@ export const delete_store = async (req, res) => {
 export const fetch_storeIds = async (req, res) => {
   try {
     const stores = await Store.find({}).select("storeId");
-    
+
     const storeIds = stores.map((s) => s.storeId);
 
     res.json(storeIds);
@@ -157,4 +190,37 @@ export const fetch_storeIds = async (req, res) => {
     console.error("❌ Error in v1 store.controller get_stores:", err);
     res.status(500).json({ error: "Server error" });
   }
-}
+};
+
+//? UTILS
+
+export const addUpdateStoreImage = async (image, storeId) => {
+  try {
+    let cloudinaryResponse = null;
+
+    if (image) {
+      cloudinaryResponse = await uploadToCloudinary(image, `${storeId}/logo`);
+    }
+
+    return cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "";
+  } catch (error) {
+    console.log("Error in addUpdateStoreImage: ", error);
+    return "";
+  }
+};
+
+export const deleteStoreImage = async (image, storeId) => {
+  try {
+    if (image) {
+      const publicId = await image.split("/").pop().split(".")[0];
+      console.log("delete-----", publicId);
+
+      await cloudinary.uploader.destroy(`${storeId}/logo/${publicId}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.log("Error in deleteStoreImage: ", error);
+    return false;
+  }
+};

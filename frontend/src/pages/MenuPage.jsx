@@ -11,8 +11,8 @@ import Sidebar from "../components/SideBar";
 const MenuPage = () => {
   const {
     applyCategory,
-    category,
-    listType,
+    defaultCategory,
+    defaultListStyle,
     changeListType,
     setSearch,
     clearSearch,
@@ -20,11 +20,11 @@ const MenuPage = () => {
     categories,
     activeProductInfo,
     setActiveProductInfo,
-    pages,
+    externalPages,
   } = usePageStore();
 
   const headerHeight = 120; // total height of Header + Toolbar
- 
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [productMealDialogOpen, setProductMealDialogOpen] = useState(false);
 
@@ -34,8 +34,8 @@ const MenuPage = () => {
       <HeaderArea
         headerHeight={headerHeight}
         applyCategory={applyCategory}
-        category={category}
-        listType={listType}
+        defaultCategory={defaultCategory}
+        defaultListStyle={defaultListStyle}
         changeListType={changeListType}
         setSearch={setSearch}
         clearSearch={clearSearch}
@@ -56,7 +56,11 @@ const MenuPage = () => {
       {/* Footer */}
       <Footer />
 
-      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} pages={pages} />
+      <Sidebar
+        open={sidebarOpen}
+        setOpen={setSidebarOpen}
+        pages={externalPages}
+      />
 
       <ProductMealDialog
         open={productMealDialogOpen}
@@ -75,8 +79,8 @@ const ListArea = ({ setProductMealDialogOpen }) => {
     productsToDisplay,
     filteredProducts,
     searchQuery,
-    category,
-    listType,
+    defaultCategory,
+    defaultListStyle,
     setActiveProductInfo,
   } = usePageStore();
 
@@ -107,20 +111,20 @@ const ListArea = ({ setProductMealDialogOpen }) => {
   return (
     <AnimatePresence>
       <motion.div
-        key={`${listType}-${products
+        key={`${defaultListStyle}-${products
           .map((p) => p.id)
-          .join("-")}-${searchQuery}-${category}`}
+          .join("-")}-${searchQuery}-${defaultCategory}`}
         variants={containerVariants}
         initial="hidden"
         animate="visible" // triggers animation when in view
         className={`w-full px-5 py-5 grid ${
-          listType === "list"
+          defaultListStyle === "list"
             ? "gap-x-1"
-            : listType === "grid"
+            : defaultListStyle === "grid"
             ? "gap-2 gap-y-3"
             : "gap-3 xs:gap-4"
         } ${
-          listType === "grid"
+          defaultListStyle === "grid"
             ? "grid-cols-2 xs:grid-cols-3 sm:grid-cols-4"
             : "grid-cols-1 xs:grid-cols-2 lg:grid-cols-3"
         }`}
@@ -129,7 +133,7 @@ const ListArea = ({ setProductMealDialogOpen }) => {
           <motion.div key={index} variants={itemVariants}>
             <MenuTile
               item={item}
-              listType={listType}
+              listType={defaultListStyle}
               setOpen={setProductMealDialogOpen}
               setActiveProductInfo={setActiveProductInfo}
             />

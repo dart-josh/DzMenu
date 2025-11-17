@@ -1,13 +1,20 @@
-import { Book, LayoutDashboard, Store, StoreIcon } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Book, LayoutDashboard, Plus, Store, StoreIcon } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogoTileLarge } from "../../components/LogoTile";
-import { useClientStore } from "../../store/useClientStore";
+import {
+  useClientPageStore,
+  useClientProductStore,
+  useClientStore,
+} from "../../store/useClientStore";
 import { useEffect } from "react";
 import { useState } from "react";
 import { useGeneralStore } from "../../store/useGeneralStore";
 
 const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
   const { activeStore, stores, getMyStores } = useClientStore();
+  const { fetchProducts, categories } = useClientProductStore();
+  const { fetchPages, pages } = useClientPageStore();
+
   const [sideItems, setSideItems] = useState([
     {
       link: "/client/dashboard",
@@ -21,27 +28,12 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
     },
     {
       title: "Active",
-      store: "",
     },
     {
-      link: "/client/s/del/p",
-      icon: <Book className="size-5" />,
       title: "Pages",
-      sub: [
-        { link: "/client/s/del/p/ach", title: "All products" },
-        { link: "/client/s/del/p/ach2", title: "Whole foods" },
-      ],
     },
     {
-      link: "/client/products",
-      icon: <Store className="size-5" />,
       title: "Products",
-      sub: [
-        { link: "/client/products/smoothies", title: "Smoothies" },
-        { link: "/client/products/juice", title: "Juices" },
-        { link: "/client/products/groceries", title: "Groceries" },
-        { link: "/client/products/whole_foods", title: "Whole foods" },
-      ],
     },
   ]);
 
@@ -49,6 +41,7 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  // update stores
   useEffect(() => {
     const item = {
       link: "/client/store",
@@ -71,6 +64,64 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stores]);
 
+  // update pages
+  useEffect(() => {
+    const item = activeStore?.storeId
+      ? {
+          link: `/client/s/${activeStore?.storeId}/p`,
+          newLink: `/client/s/${activeStore?.storeId}/p/new`,
+          icon: <Book className="size-5" />,
+          title: "Pages",
+          sub: pages.map((page, i) => ({
+            link: `/client/s/${activeStore?.storeId}/p/${page.pageId}`,
+            title: page.pageTitle,
+            id: i,
+          })),
+        }
+      : {
+          title: "Pages",
+        };
+
+    const updatedList = sideItems.map((sideItem) =>
+      sideItem?.title === "Pages"
+        ? { ...item } // modify the object here
+        : sideItem
+    );
+
+    setSideItems(updatedList);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pages, activeStore]);
+
+  // update products categories
+  useEffect(() => {
+    const updateProductSideItems = (categories) => {
+      const new_item = {
+        link: "/client/products",
+        icon: <Store className="size-5" />,
+        title: "Products",
+        sub: categories.map((category, i) => ({
+          link: `/client/products/${category
+            .toLowerCase()
+            .replaceAll(" ", "_")}`,
+          title: category,
+          id: i,
+        })),
+      };
+
+      const updatedList = sideItems.map((item) =>
+        item?.title === "Products"
+          ? { ...new_item } // modify the object here
+          : item
+      );
+
+      setSideItems(updatedList);
+    };
+
+    if (activeStore?.storeId) updateProductSideItems(categories);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStore, categories]);
+
+  // update active store & fetch store data
   useEffect(() => {
     const updatedList = sideItems.map((store) =>
       store?.title === "Active"
@@ -78,10 +129,15 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
         : store
     );
 
+    fetchProducts(activeStore);
+    fetchPages(activeStore);
+
     setSideItems(updatedList);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStore]);
 
+  // get stores
   useEffect(() => {
     getMyStores();
   }, [getMyStores]);
@@ -92,7 +148,7 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
         <LogoTileLarge />
       </div>
 
-      <nav className="flex-1 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
+      <nav className="flex-1 overflow-y-auto space-y-1.5 pr-2 custom-scrollbar">
         {sideItems.map((item, i) => (
           <div key={i}>
             <ItemTile closeSidebar={closeSidebar} item={item} />
@@ -121,21 +177,22 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
 };
 
 const ItemTile = ({ item, isSub = false, closeSidebar }) => {
+  const navigate = useNavigate();
   const { changeStore, activeStore } = useClientStore();
   const { setConfirmDetails } = useGeneralStore();
   const { pathname } = useLocation();
 
   if (!item) return;
 
-  if (item.title == "Active")
-    if (!item.link && item.store)
-      return (
-        <div className="border-y mt-3 py-2 items-center flex gap-2 w-full text-sm">
-          <Store className="size-4" />
-          <span className="truncate w-full">{item.store}</span>
-        </div>
-      );
-    else return;
+  if (item.title == "Active" && item.store)
+    return (
+      <div className="border-y mt-3 py-2 items-center flex gap-2 w-full text-sm">
+        <Store className="size-4" />
+        <span className="truncate w-full">{item.store}</span>
+      </div>
+    );
+
+  if (!item.link) return;
 
   const isActive = pathname.startsWith(item.link);
   const isSubActive = pathname === item.link && isSub;
@@ -169,9 +226,63 @@ const ItemTile = ({ item, isSub = false, closeSidebar }) => {
     }
   };
 
+  const goToLink = (e) => {
+    e.stopPropagation();
+    navigate(item.newLink);
+    closeSidebar();
+  };
+
+  if (!item.newLink)
+    return (
+      <Link
+        to={item.link}
+        onClick={() => {
+          closeSidebar();
+          checkIfActive(item.link);
+        }}
+        className={`${
+          isActive && !isSub
+            ? "bg-white/70 shadow-md text-black/80"
+            : !isSub
+            ? "hover:bg-white/70 hover:shadow-md hover:text-black/80 text-gray-800/90"
+            : ""
+        } ${
+          isSubActive
+            ? "underline text-green-950 font-semibold"
+            : "hover:text-green-950 hover:font-semibold"
+        }  transition duration-300  ${
+          isSub ? "text-gray-800/90 px-2 py-1 pl-10" : "font-semibold px-2 py-2"
+        } text-[16px] rounded-lg  cursor-pointer flex items-center gap-2`}
+      >
+        {!isSub && item.icon}
+        <div>{item.title}</div>
+      </Link>
+    );
+  else
+    return (
+      <NewLinkTile
+        item={item}
+        closeSidebar={closeSidebar}
+        checkIfActive={checkIfActive}
+        isActive={isActive}
+        isSub={isSub}
+        isSubActive={isSubActive}
+        goToLink={goToLink}
+      />
+    );
+};
+
+const NewLinkTile = ({
+  item,
+  closeSidebar,
+  checkIfActive,
+  isActive,
+  isSub,
+  isSubActive,
+  goToLink,
+}) => {
   return (
-    <Link
-      to={item.link}
+    <div
       onClick={() => {
         closeSidebar();
         checkIfActive(item.link);
@@ -187,12 +298,20 @@ const ItemTile = ({ item, isSub = false, closeSidebar }) => {
           ? "underline text-green-950 font-semibold"
           : "hover:text-green-950 hover:font-semibold"
       }  transition duration-300  ${
-        isSub ? "text-gray-800/90 px-2 py-1 pl-10" : "font-semibold px-2 py-2"
-      } text-[16px] rounded-lg  cursor-pointer flex items-center gap-2`}
+        isSub ? "text-gray-800/90 px-2 py-1 pl-10" : "font-semibold"
+      } text-[16px] rounded-lg  cursor-pointer flex items-center gap-2 px-2`}
     >
-      {!isSub && item.icon}
-      <div>{item.title}</div>
-    </Link>
+      <Link to={item.link} className="flex items-center gap-2  py-2 w-full">
+        {!isSub && item.icon}
+        <div>{item.title}</div>
+      </Link>
+
+      {item.newLink && (
+        <div onClick={goToLink} className="ml-auto pr-1">
+          <Plus className="size-6" />
+        </div>
+      )}
+    </div>
   );
 };
 

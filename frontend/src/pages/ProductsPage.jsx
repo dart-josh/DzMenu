@@ -11,8 +11,8 @@ import Sidebar from "../components/SideBar";
 const ProductsPage = () => {
   const {
     applyCategory,
-    category,
-    listType,
+    defaultCategory,
+    defaultListStyle,
     changeListType,
     setSearch,
     clearSearch,
@@ -20,7 +20,7 @@ const ProductsPage = () => {
     categories,
     activeProductInfo,
     setActiveProductInfo,
-    pages,
+    externalPages,
   } = usePageStore();
 
   const headerHeight = 120; // total height of Header + Toolbar
@@ -34,8 +34,8 @@ const ProductsPage = () => {
       <HeaderArea
         headerHeight={headerHeight}
         applyCategory={applyCategory}
-        category={category}
-        listType={listType}
+        defaultCategory={defaultCategory}
+        defaultListStyle={defaultListStyle}
         changeListType={changeListType}
         setSearch={setSearch}
         clearSearch={clearSearch}
@@ -56,7 +56,7 @@ const ProductsPage = () => {
       {/* Footer */}
       <Footer />
 
-      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} pages={pages} />
+      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} pages={externalPages} />
 
       <ProductMealDialog
         open={productMealDialogOpen}
@@ -76,7 +76,7 @@ const ListArea = ({ setProductMealDialogOpen }) => {
     filteredProducts,
     searchQuery,
     category,
-    listType,
+    defaultListStyle,
     setActiveProductInfo,
   } = usePageStore();
 
@@ -107,14 +107,14 @@ const ListArea = ({ setProductMealDialogOpen }) => {
   return (
     <AnimatePresence>
       <motion.div
-        key={`${listType}-${products
+        key={`${defaultListStyle}-${products
           .map((p) => p.id)
           .join("-")}-${searchQuery}-${category}`}
         variants={containerVariants}
         initial="hidden"
         animate="visible" // triggers animation when in view
         className={`w-full px-5 py-5 grid ${
-          listType === "grid"
+          defaultListStyle === "grid"
             ? "grid-cols-2 xs:grid-cols-3 xs:gap-2.5 sm:gap-3 sm:grid-cols-4 gap-2"
             : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3"
         }`}
@@ -123,7 +123,7 @@ const ListArea = ({ setProductMealDialogOpen }) => {
           <motion.div key={index} variants={itemVariants}>
             <ProductTile
               product={product}
-              listType={listType}
+              listType={defaultListStyle}
               setOpen={setProductMealDialogOpen}
               setActiveProductInfo={setActiveProductInfo}
             />

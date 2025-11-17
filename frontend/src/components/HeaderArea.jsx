@@ -5,8 +5,8 @@ import Toolbar from "./Toolbar";
 const HeaderArea = ({
   headerHeight,
   applyCategory,
-  category,
-  listType,
+  defaultCategory,
+  defaultListStyle,
   changeListType,
   setSearch,
   clearSearch,
@@ -59,10 +59,10 @@ const HeaderArea = ({
       {/* Toolbar */}
       <div className="pt-3 px-2 flex justify-center">
         <Toolbar
-          listType={listType}
+          defaultListStyle={defaultListStyle}
           changeListType={changeListType}
           applyCategory={applyCategory}
-          category={category}
+          defaultCategory={defaultCategory}
           setSearch={setSearch}
           clearSearch={clearSearch}
           searchQuery={searchQuery}

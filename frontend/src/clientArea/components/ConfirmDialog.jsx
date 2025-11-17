@@ -28,6 +28,22 @@ const ConfirmDialog = () => {
     return () => (document.body.style.overflow = "");
   }, [open]);
 
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Escape") onClose?.();
+      if (!open) return;
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        onConfirm();
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   if (!open) return null;
 
   const getIcon = () => {

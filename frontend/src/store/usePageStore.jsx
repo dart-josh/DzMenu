@@ -3,58 +3,59 @@ import { create } from "zustand";
 export const usePageStore = create((set, get) => ({
   products: [],
   categories: [],
-  category: "All",
-  listTypes: [],
-  listType: "grid",
-  pages: [],
+  defaultCategory: "All",
+  listStyle: [],
+  defaultListStyle: "grid",
+  externalPages: [],
 
   productsToDisplay: [],
   filteredProducts: [],
   searchQuery: "",
-
+ 
   activeProductInfo: null,
 
   //   set page data
   setPageData: ({
     products,
     categories,
-    category,
-    listTypes,
-    listType,
-    pages,
+    defaultCategory,
+    listStyle,
+    defaultListStyle,
+    externalPages,
   }) => {
     set({
       products,
       productsToDisplay: products,
       categories,
-      category,
-      listTypes,
-      listType,
-      pages,
+      defaultCategory,
+      listStyle,
+      defaultListStyle,
+      externalPages,
     });
 
     const { applyCategory } = get();
-    applyCategory(category);
+    applyCategory(defaultCategory);
   },
 
   // apply category
   applyCategory: (category) => {
+    console.log(category)
     const { products } = get();
     if (category == "All") {
       set({
-        category,
+        defaultCategory: category,
         productsToDisplay: products,
       });
     } else {
       const filtered = products
         ? products.filter(
             (product) =>
-              product.category.toLowerCase() == category.toLowerCase()
+              product.category?.toLowerCase() == category?.toLowerCase()
           )
         : [];
 
       set({
-        category,
+        defaultCategory: category,
         productsToDisplay: filtered,
       });
     }
@@ -96,18 +97,18 @@ export const usePageStore = create((set, get) => ({
   },
 
   //   change list type
-  listTypeIndex: 0,
+  listStyleIndex: 0,
   changeListType: () => {
-    const { listTypes, listTypeIndex } = get();
+    const { listStyle, listStyleIndex } = get();
 
-    let lti = listTypeIndex + 1;
-    if (lti >= listTypes.length) {
+    let lti = listStyleIndex + 1;
+    if (lti >= listStyle.length) {
       lti = 0;
     }
 
-    const listType = listTypes[lti];
+    const _listStyle = listStyle[lti];
 
-    set({ listType, listTypeIndex: lti });
+    set({ defaultListStyle: _listStyle, listStyleIndex: lti }); // 
   },
 
   //

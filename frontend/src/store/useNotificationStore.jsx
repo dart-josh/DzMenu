@@ -20,5 +20,7 @@ export const useNotificationStore = create((set, get) => ({
 
 // helper function to call from anywhere
 export const notify = (note) => {
-  useNotificationStore.getState().addNotification(note);
+  const nots = useNotificationStore.getState().notifications;
+  const notI = nots.find((n) => n.key == note.key);
+  if (!notI) useNotificationStore.getState().addNotification(note);
 };

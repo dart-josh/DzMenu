@@ -23,7 +23,7 @@ export const create_store = async (data) => {
     return {
       success: true,
       message: response.data.message,
-      storeId: response.data.storeId,
+      store: response.data.store,
     };
   } catch (error) {
     console.log("Error in create_store function - ", error);
@@ -186,6 +186,29 @@ export const update_page = async (storeId, data) => {
   }
 };
 
+// toggle page visibility
+export const togglePageLive = async (storeId, data) => {
+  // const data = {storeId, pageId, value}
+  try {
+    const response = await axios.post(
+      `${server_prefix}/page/togglePageLive`,
+      data
+    );
+
+    return {
+      success: true,
+      message: response.data.message,
+      page: response.data.page,
+    };
+  } catch (error) {
+    console.log("Error in togglePageLive function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
 // fetch page
 export const fetch_page = async (storeId, link) => {
   const url = !link
@@ -202,10 +225,10 @@ export const fetch_page = async (storeId, link) => {
 };
 
 // delete page
-export const delete_page = async (storeId, link) => {
+export const delete_page = async (storeId, pageId) => {
   try {
     const response = await axios.delete(
-      `${server_prefix}/page/delete/${storeId}/${link}`
+      `${server_prefix}/page/delete/${storeId}/${pageId}`
     );
 
     return {
@@ -314,14 +337,29 @@ export const delete_product = async (storeId, productId) => {
   }
 };
 
+// get products
+export const get_products = async (storeId) => {
+  // const data = {productDetails}
+  try {
+    const response = await axios.get(
+      `${server_prefix}/product/get_products/${storeId}`
+    );
+
+    return response.data;
+  } catch (error) {
+    console.log("Error in get_products function - ", error);
+    return null;
+  }
+};
+
 //? category
 
 // add category
-export const add_category = async (storeId, category) => {
+export const add_category = async (storeId, data) => {
   try {
     const response = await axios.post(
       `${server_prefix}/product/add_category/${storeId}`,
-      { category }
+      data
     );
 
     return {
@@ -355,6 +393,21 @@ export const remove_category = async (storeId, category) => {
       success: false,
       message: error.response?.data?.error || error.message || error,
     };
+  }
+};
+
+// get categories
+export const get_categories = async (storeId) => {
+  // const data = {productDetails}
+  try {
+    const response = await axios.get(
+      `${server_prefix}/product/get_categories/${storeId}`
+    );
+
+    return response.data;
+  } catch (error) {
+    console.log("Error in get_categories function - ", error);
+    return null;
   }
 };
 

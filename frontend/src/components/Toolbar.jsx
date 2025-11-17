@@ -15,10 +15,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Toolbar
 const Toolbar = ({
-  listType,
+  defaultListStyle,
   changeListType,
   applyCategory,
-  category,
+  defaultCategory,
   setSearch,
   clearSearch,
   searchQuery,
@@ -31,7 +31,7 @@ const Toolbar = ({
   // animate page if category or listType changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [category, listType]);
+  }, [defaultCategory, defaultListStyle]);
 
   // Apply theme to <html> element
   useEffect(() => {
@@ -90,7 +90,7 @@ const Toolbar = ({
 
 
   const ListTypeIcon = () => {
-    switch (listType) {
+    switch (defaultListStyle) {
       case "menu":
         return (
           <Theater
@@ -148,7 +148,7 @@ const Toolbar = ({
                 setSearch={setSearch}
                 clearSearch={clearSearch}
                 searchQuery={searchQuery}
-                category={category}
+                category={defaultCategory}
                 categories={categories}
               />
             </motion.div>
@@ -166,7 +166,7 @@ const Toolbar = ({
               {/* Category */}
               <motion.div variants={itemVariants}>
                 <CategoryDropdown
-                  element={<CategoryElement category={category} />}
+                  element={<CategoryElement category={defaultCategory} />}
                   setCategory={applyCategory}
                   categories={categories}
                 />

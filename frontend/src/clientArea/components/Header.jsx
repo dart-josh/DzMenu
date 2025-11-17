@@ -1,7 +1,14 @@
 import { Bell, MessageCircle, Search, UserCircle2 } from "lucide-react";
 import { LogoTileLarge } from "../../components/LogoTile";
+import { usePageHeaderStore } from "../../store/useGeneralStore";
+import NotificationDropdown from "./NotificationDropdown";
+import UserMenuDropdown from "../userArea/components/UserMenuDropdown";
+import InboxDropdown from "./InboxDropdown";
+import SearchDropdown from "./SearchDropdown";
 
-const Header = ({ setIsSidebarOpen, isSidebarOpen }) => {
+const Header = ({ setIsSidebarOpen, isSidebarOpen, setCreateDialogOpen }) => {
+  const { activePage } = usePageHeaderStore();
+
   return (
     <div className="h-18 flex gap-2 lg:gap-5 items-center w-full">
       <button
@@ -10,54 +17,35 @@ const Header = ({ setIsSidebarOpen, isSidebarOpen }) => {
       >
         <LogoTileLarge />
       </button>
-      <div className="w-full font-bold text-3xl text-black">{"Dashboard"}</div>
+      <div className="w-full font-bold text-3xl text-black">{activePage}</div>
 
-      <SearchBar />
+      {/* <SearchBar /> */}
+      <div className="w-full hidden lg:flex">
+        <SearchDropdown />
+      </div>
 
       <div className="flex gap-2 lg:gap-3 items-center">
         {/* Create */}
-        <div className="hidden rounded-full h-10 w-20 sm:flex items-center justify-center bg-black/90 text-white font-semibold text-sm px-2 py-2">
+        <div
+          onClick={() => setCreateDialogOpen(true)}
+          className="cursor-pointer hidden rounded-full h-10 w-20 sm:flex items-center justify-center bg-black/90 text-white font-semibold text-sm px-2 py-2"
+        >
           Create
         </div>
 
         {/* notification */}
         <div className="hidden xs:flex">
-          <IconCircle icon={<Bell className="size-5" />} />
+          <NotificationDropdown />
         </div>
 
         {/* inbox */}
         <div className="hidden xs:flex">
-          <IconCircle icon={<MessageCircle className="size-5" />} />
+          <InboxDropdown />
         </div>
 
         {/* profile */}
-        <IconCircle icon={<UserCircle2 className="size-5" />} />
+        <UserMenuDropdown />
       </div>
-    </div>
-  );
-};
-
-// Search bar
-const SearchBar = () => {
-  return (
-    <div className="text-black/80 hidden gap-2 h-10 rounded-full bg-white/60 py-1.5 px-3 lg:flex items-center max-w-[500px] w-full">
-      <Search className="size-5" />
-
-      <input
-        type="text"
-        id="search"
-        className="border-none w-full outline-none"
-        placeholder="Search anything..."
-      />
-    </div>
-  );
-};
-
-// Icon box
-const IconCircle = ({ icon }) => {
-  return (
-    <div className="rounded-full size-10 bg-white/60 text-black/60 flex items-center justify-center">
-      {icon}
     </div>
   );
 };

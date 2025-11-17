@@ -10,6 +10,7 @@ const storeSchema = new mongoose.Schema(
     slogan: String,
     shortInfo: String,
     storeLive: Boolean,
+    storeImage: String,
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }

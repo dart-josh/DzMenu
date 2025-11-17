@@ -3,6 +3,8 @@ import {
   add_category,
   create_product,
   delete_product,
+  get_categories,
+  get_products,
   remove_category,
   update_product,
 } from "../../controllers/v1/product.controller.js";
@@ -18,10 +20,13 @@ const upload = multer({ storage });
 //! protected by auth & owner
 router.post("/create/:storeId", upload.single("image"), create_product);
 router.post("/update/:storeId", upload.single("image"), update_product);
+router.get("/get_products/:storeId", get_products);
 
 router.delete("/delete/:storeId/:productId", delete_product);
 
 router.post("/add_category/:storeId", add_category);
+router.get("/get_categories/:storeId", get_categories);
+
 router.delete("/remove_category/:storeId/:category", remove_category);
 
 export default router;

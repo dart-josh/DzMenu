@@ -7,8 +7,12 @@ import { create_store, update_store } from "../../helpers/serverHelpers";
 import toast from "react-hot-toast";
 import ManageStoreDialog from "../dialogs/ManageStore";
 import { notify } from "../../store/useNotificationStore";
+import { useSearchParams } from "react-router-dom";
 
 const StoreList = () => {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("x");
+
   const { updateStore, getMyStores } = useClientStore();
 
   const [open, setOpen] = useState(false);
@@ -34,12 +38,12 @@ const StoreList = () => {
     if (!cat.success) toast.error(cat.message || "Error", { id: "error1" });
     else {
       notify({
-        title: "Store Updated",
-        message: "Your store was successfully updated!",
+        title: isCreate ? "Store Created" : "Store V Updated",
+        message: `Your store with ID ${cat?.store?.storeId} was successfully ${isCreate ? "created" : "updated"}!`,
         type: "success",
         duration: 4000,
       });
-      updateStore(rawData);
+      updateStore(cat.store);
     }
     return cat.success;
   };
@@ -47,6 +51,12 @@ const StoreList = () => {
   useEffect(() => {
     getMyStores();
   }, [getMyStores]);
+
+  useEffect(() => {
+    if (query == "create") {
+      openManageStore(null);
+    }
+  }, [query]);
 
   return (
     <div className="w-full py-10 pt-5">
@@ -57,7 +67,7 @@ const StoreList = () => {
 
       <div className="border-b border-gray-700/60 py-2 mb-3 mt-10 flex items-center gap-2 text-xl font-semibold">
         <Store className="size-5" />
-        Other stores
+        Stores
       </div>
 
       <div className="w-full rounded-2xl h-fit bg-white/70 backdrop-blur-md px-3 sm:px-6 py-8 shadow-md space-y-10">
@@ -88,7 +98,7 @@ const ActiveStore = ({ openManageStore }) => {
   const { activeStore: store } = useClientStore();
   const { setConfirmDetails } = useGeneralStore();
 
-  if (!store) return null;
+  if (!store) return <NoActiveStore />;
 
   const openConfirmDialog = () => {
     const conf = {
@@ -165,13 +175,7 @@ const Stores = () => {
       {(stores &&
         stores.length &&
         stores.map((store, i) => <StoreTile key={i} store={store} />)) || (
-        <div className="flex items-center gap-2">
-          <ShoppingBag className="size-5" />
-          <div className="w-full">
-            You haven't added any stores. Create one to start listing and
-            displaying your store.
-          </div>
-        </div>
+        <NoStores />
       )}
     </div>
   );
@@ -203,7 +207,7 @@ const StoreTile = ({ store }) => {
       changeStore(storeId);
     } else if (activeStore?.storeId !== storeId) {
       openConfirmDialog(storeId);
-    } 
+    }
   };
 
   return (
@@ -225,6 +229,38 @@ const StoreTile = ({ store }) => {
         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
       </div>
     </Link>
+  );
+};
+
+const NoActiveStore = () => {
+  return (
+    <div className="flex items-center justify-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-gray-100/60 to-white/40 dark:from-gray-800/60 dark:to-gray-900/50 backdrop-blur-md border border-gray-200/40 dark:border-gray-700/50 shadow-inner">
+      <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/10 border border-blue-400/30">
+        <div className="absolute inset-0 blur-lg bg-blue-400/20 rounded-full animate-pulse" />
+        <Store className="text-blue-400 size-6" />
+      </div>
+      <span className="text-sm md:text-base font-medium text-gray-700 dark:text-gray-300 tracking-wide">
+        No Active Store
+      </span>
+    </div>
+  );
+};
+
+const NoStores = () => {
+  return (
+    <div className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-blue-50/60 to-white/80 dark:from-blue-950/40 dark:to-gray-900/60 border border-blue-100 dark:border-blue-800/40 shadow-sm backdrop-blur-md hover:shadow-blue-200/30 transition-all duration-300">
+      <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+        <div className="absolute inset-0 blur-lg bg-blue-400/20 rounded-xl animate-pulse" />
+        <ShoppingBag className="size-5 relative z-10" />
+      </div>
+
+      <div className="flex-1 text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+        <span className="font-semibold text-blue-600 dark:text-blue-400">
+          No stores yet.
+        </span>{" "}
+        Create one to start listing and showcasing your products.
+      </div>
+    </div>
   );
 };
 

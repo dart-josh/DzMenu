@@ -1,11 +1,7 @@
 import {
   Circle,
-  Dot,
   EyeOff,
-  FileText,
-  Image,
   Loader,
-  Star,
 } from "lucide-react";
 import {
   Cog,
@@ -23,15 +19,21 @@ import {
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import CategoryManager from "../components/CategoryManager";
-import { useClientStore } from "../../store/useClientStore";
+import {
+  useClientPageStore,
+  useClientProductStore,
+  useClientStore,
+} from "../../store/useClientStore";
 import {
   delete_store,
+  get_pages,
+  get_products,
   get_store,
   toggleStoreLive,
   update_store,
 } from "../../helpers/serverHelpers";
 import { useState } from "react";
-import { formatOpenedSince } from "../../utils/formats";
+import { formatNumber, formatOpenedSince } from "../../utils/formats";
 import {
   copyToClipboard,
   getBaseUrl,
@@ -41,15 +43,23 @@ import toast from "react-hot-toast";
 import { useGeneralStore } from "../../store/useGeneralStore";
 import ManageStoreDialog from "../dialogs/ManageStore";
 import { notify } from "../../store/useNotificationStore";
+import ManageProductDialog from "../dialogs/ManageProduct";
+import { pageTypes } from "../../utils/globarvariables";
+import { StoreNotFoundPage } from "../components/StoreNotFoundPage";
+import { ManageStoreShimmer } from "../shimmers/ManageStoreShimmer";
 
 const ManageStore = () => {
   const { storeId } = useParams();
+
   const { stores } = useClientStore();
 
   const [store, setStore] = useState(null);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     const fetchStoreDetails = async () => {
+      setIsLoading(true);
       if (!stores || !stores.length) {
         const res = await get_store(storeId);
         if (res) setStore(res);
@@ -57,6 +67,7 @@ const ManageStore = () => {
         const res = stores.find((store) => store.storeId === storeId);
         if (res) setStore(res);
       }
+      setIsLoading(false);
     };
 
     fetchStoreDetails();
@@ -65,18 +76,19 @@ const ManageStore = () => {
   useEffect(() => {
     scrollToTop();
   }, [store]);
+  
+  if (isLoading) return <ManageStoreShimmer />;
 
-  if (!store)
-    return <div className="w-full flex items-center">Choiii Ewoo</div>;
+  if (!store) return <StoreNotFoundPage />;
 
   return (
     <div className="w-full py-10 pt-5 space-y-12">
       <StoreDetails store={store} />
-      <Pages />
-      <Products />
-      <CategoryManager />
+      <Pages storeId={storeId} />
+      <Products storeId={storeId} />
+      <CategoryManager storeId={storeId} />
       <StoreSettings store={store} />
-      <DeleteZone store={store} />
+      <DeleteZone storeId={storeId} />
     </div>
   );
 };
@@ -194,76 +206,162 @@ const StoreLink = ({ store }) => {
 };
 
 // 🧭 Pages Section
-const Pages = () => {
-  const pages = [
-    { name: "Home", desc: "Landing overview", icon: <LayoutGrid size={16} /> },
-    { name: "Menu", desc: "Food & drinks", icon: <FileText size={16} /> },
-    { name: "Gallery", desc: "Image showcase", icon: <Image size={16} /> },
-    { name: "About", desc: "Brand story", icon: <Star size={16} /> },
-  ];
+const Pages = ({ storeId }) => {
+  const { pages, activeStoreId } = useClientPageStore();
+
+  const [pagesTD, setPagesTD] = useState([]);
+
+  const fetchPages = async () => {
+    if (storeId === activeStoreId) {
+      const pds = pages.map((p) => ({
+        ...p,
+        icon: pageIcon(p.pageType),
+      }));
+
+      setPagesTD([...pds].reverse());
+    } else {
+      const pd = await get_pages(storeId);
+      if (pd != null) {
+        const pds = pd.map((p) => ({ ...p, icon: pageIcon(p.pageType) }));
+
+        setPagesTD([...pds].reverse());
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchPages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeId, activeStoreId, pages]);
+
+  const pageIcon = (pageType) => {
+    return (
+      pageTypes().find((p) => p.id == pageType)?.icon || (
+        <Store className="size-4" />
+      )
+    );
+  };
 
   return (
     <div>
       <SectionHeader icon={<LayoutGrid />} title="Pages" color="blue" />
       <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-white px-3 xs:px-5 py-5 border border-blue-100 shadow-sm">
         <div className="flex w-full overflow-x-auto pb-4 gap-4">
-          {pages.map((page, i) => (
-            <div
+          {pagesTD.map((page, i) => (
+            <Link
               key={i}
+              to={`/client/s/${storeId}/p/${page.pageId}`}
               className="min-w-[120px] h-[80px] bg-white border border-blue-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 transition flex flex-col items-start justify-center px-3"
             >
               <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm">
                 {page.icon}
-                {page.name}
+                {page.pageTitle}
               </div>
-              <p className="text-xs text-gray-500 mt-1">{page.desc}</p>
-            </div>
+              <p className="text-xs text-gray-500 mt-1">{page.pageId}</p>
+            </Link>
           ))}
         </div>
 
-        <AddNewButton label="Add new page" color="blue" />
+        {storeId === activeStoreId && (
+          <AddNewPageButton
+            label="Add new page"
+            color="blue"
+            storeId={storeId}
+          />
+        )}
       </div>
     </div>
   );
 };
 
 // 🛍 Products Section
-const Products = () => {
-  const products = [
-    { name: "Berry Smoothie", desc: "₦2500", icon: <ShoppingBag size={16} /> },
-    { name: "Tropical Juice", desc: "₦1800", icon: <ShoppingBag size={16} /> },
-    { name: "Organic Bread", desc: "₦1500", icon: <ShoppingBag size={16} /> },
-    { name: "Green Detox", desc: "₦2700", icon: <ShoppingBag size={16} /> },
-  ];
+const Products = ({ storeId }) => {
+  const { products, activeStoreId } = useClientProductStore();
+
+  const [productsTD, setProductsTD] = useState([]);
+
+  const [open, setOpen] = useState(false);
+
+  const [productDetails, setProductDetails] = useState({});
+
+  const onClose = () => setOpen(false);
+
+  const openManageProduct = (product = null) => {
+    if (storeId !== activeStoreId) return;
+
+    setProductDetails(product);
+    setOpen(true);
+  };
+
+  const fetchProducts = async () => {
+    if (storeId === activeStoreId) {
+      const pds = products.map((p) => ({
+        ...p,
+        icon: <ShoppingBag size={16} />,
+      }));
+
+      setProductsTD([...pds].reverse());
+    } else {
+      const pd = await get_products(storeId);
+      if (pd != null) {
+        const pds = pd.map((p) => ({ ...p, icon: <ShoppingBag size={16} /> }));
+
+        setProductsTD([...pds].reverse());
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeId, activeStoreId, products]);
 
   return (
     <div>
       <SectionHeader icon={<ShoppingBag />} title="Products" color="emerald" />
       <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white px-3 xs:px-5 py-5 border border-emerald-100 shadow-sm">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {products.map((prod, i) => (
+          {productsTD.slice(0, 12).map((prod, i) => (
             <div
               key={i}
+              onClick={() => openManageProduct(prod)}
               className="h-[80px] bg-white border border-emerald-200 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-400 transition flex flex-col items-start justify-center px-3"
             >
               <div className="flex items-center gap-2 text-emerald-600 font-semibold text-sm">
                 {prod.icon}
                 {prod.name}
               </div>
-              <p className="text-xs text-gray-500 mt-1">{prod.desc}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                ₦{formatNumber(prod.price)}
+              </p>
             </div>
           ))}
         </div>
 
-        <Link
-          to="/client/products"
-          className="block mt-3 text-right text-gray-500 hover:text-emerald-700 underline italic text-sm"
-        >
-          View more
-        </Link>
+        {storeId === activeStoreId && (
+          <Link
+            to="/client/products"
+            className="block mt-3 text-right text-gray-500 hover:text-emerald-700 underline italic text-sm"
+          >
+            View more
+          </Link>
+        )}
 
-        <AddNewButton label="Add product" color="emerald" />
+        {storeId === activeStoreId && (
+          <AddNewButton
+            label="Add product"
+            color="emerald"
+            openManageProduct={openManageProduct}
+          />
+        )}
       </div>
+
+      <ManageProductDialog
+        open={open}
+        onClose={onClose}
+        product={productDetails}
+        storeId={storeId}
+      />
     </div>
   );
 };
@@ -293,11 +391,11 @@ const StoreSettings = ({ store }) => {
     else {
       notify({
         title: "Store Updated",
-        message: "Your store was successfully updated!",
+        message: `Your store with ID ${cat?.store?.storeId} was successfully ${isCreate ? "created" : "updated"}!`,
         type: "success",
         duration: 4000,
       });
-      updateStore(rawData);
+      updateStore(cat.store);
     }
     return cat.success;
   };
@@ -348,7 +446,7 @@ const StoreSettings = ({ store }) => {
 };
 
 // 🔴 Danger Zone Section
-const DeleteZone = ({ store }) => {
+const DeleteZone = ({ storeId }) => {
   const navigate = useNavigate();
   const { deleteStore } = useClientStore();
   const { setConfirmDetails } = useGeneralStore();
@@ -371,7 +469,7 @@ const DeleteZone = ({ store }) => {
 
   const handleDelete = async () => {
     setDeletingStore(true);
-    const res = await delete_store(store.storeId);
+    const res = await delete_store(storeId);
     setDeletingStore(false);
 
     const { success, message } = res;
@@ -382,7 +480,7 @@ const DeleteZone = ({ store }) => {
         type: "success",
         duration: 4000,
       });
-      deleteStore(store.storeId);
+      deleteStore(storeId);
       navigate("/client/store");
     } else {
       notify({
@@ -427,7 +525,7 @@ const DeleteZone = ({ store }) => {
 };
 
 // ➕ Add New Button
-const AddNewButton = ({ label, color = "gray" }) => {
+const AddNewButton = ({ label, color = "gray", openManageProduct }) => {
   const colorMap = {
     blue: "from-blue-500 to-blue-600",
     emerald: "from-emerald-500 to-emerald-600",
@@ -437,11 +535,32 @@ const AddNewButton = ({ label, color = "gray" }) => {
   return (
     <div className="mt-6">
       <button
+        onClick={openManageProduct}
         className={`flex items-center justify-center gap-2 font-semibold text-white bg-gradient-to-r ${colorMap[color]} hover:opacity-90 rounded-lg px-5 py-2 shadow-md transition-all`}
       >
         <Plus className="w-5 h-5" />
         {label}
       </button>
+    </div>
+  );
+};
+
+const AddNewPageButton = ({ label, color = "gray", storeId }) => {
+  const colorMap = {
+    blue: "from-blue-500 to-blue-600",
+    emerald: "from-emerald-500 to-emerald-600",
+    gray: "from-gray-500 to-gray-600",
+  };
+
+  return (
+    <div className="mt-6">
+      <Link
+        to={`/client/s/${storeId}/p/new`}
+        className={`flex items-center w-fit justify-center gap-2 font-semibold text-white bg-gradient-to-r ${colorMap[color]} hover:opacity-90 rounded-lg px-5 py-2 shadow-md transition-all`}
+      >
+        <Plus className="w-5 h-5" />
+        {label}
+      </Link>
     </div>
   );
 };

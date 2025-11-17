@@ -5,14 +5,13 @@ import { getTenantModel } from "../../utils/tenantManager.js";
 
 // create page
 export const create_page = async (req, res) => {
-  // link, pageType, title, description products, categories, category, listTypes, listType, pages, shuffleList
   try {
     const { storeId } = req.params;
     const { pageDetails } = req.body;
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
-    if (!pageDetails?.link)
+    if (!pageDetails?.pageId || !pageDetails?.pageType)
       return res.status(400).json({ error: "Page invalid" });
 
     const store = await Store.findOne({ storeId });
@@ -21,7 +20,7 @@ export const create_page = async (req, res) => {
     // Get model from store
     const Page = await getTenantModel(store.dbName, "Page", pageSchema);
 
-    const page_exist = await Page.findOne({ link: pageDetails.link });
+    const page_exist = await Page.findOne({ pageId: pageDetails.pageId });
     if (page_exist)
       return res.status(409).json({ error: "Page exist already" });
 
@@ -43,7 +42,7 @@ export const update_page = async (req, res) => {
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
-    if (!pageDetails?.link)
+    if (!pageDetails?.pageId || !pageDetails?.pageType)
       return res.status(400).json({ error: "Page invalid" });
 
     const store = await Store.findOne({ storeId });
@@ -53,7 +52,7 @@ export const update_page = async (req, res) => {
     const Page = await getTenantModel(store.dbName, "Page", pageSchema);
 
     const updatedPage = await Page.findOneAndUpdate(
-      { link: pageDetails.link },
+      { pageId: pageDetails.pageId },
       { $set: pageDetails },
       { new: true, runValidators: true }
     );
@@ -67,26 +66,67 @@ export const update_page = async (req, res) => {
   }
 };
 
-// fetch page
-export const fetch_page = async (req, res) => {
+// pageLive
+export const togglePageLive = async (req, res) => {
   try {
-    const { storeId, link } = req.params;
+    const { storeId, pageId, value } = req.body;
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
     const store = await Store.findOne({ storeId });
     if (!store) return res.status(404).json({ error: "Store not found" });
 
+    // Get model from store
     const Page = await getTenantModel(store.dbName, "Page", pageSchema);
-    await getTenantModel(store.dbName, "Product", productSchema);
 
-    if (!link) {
+    const page = await Page.findOneAndUpdate(
+      { pageId },
+      { visibility: value ? "Live" : "Hidden" },
+      { new: true }
+    );
+
+    res.json({ message: `Page ${value ? "live" : "hidden"}`, page });
+  } catch (error) {
+    console.error("❌ Error v1 page.controller togglePageLive:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// fetch page
+export const fetch_page = async (req, res) => {
+  try {
+    const { storeId, pageId } = req.params;
+
+    if (!storeId) return res.status(400).json({ error: "Store invalid" });
+
+    const store = await Store.findOne({ storeId });
+    if (!store) return res.status(404).json({ error: "Store not found" });
+
+    const Product = await getTenantModel(
+      store.dbName,
+      "Product",
+      productSchema
+    );
+    const Page = await getTenantModel(store.dbName, "Page", pageSchema);
+
+    if (!pageId) {
       const page = await Page.findOne({ defaultPage: true });
+
+      if (page?.products) {
+        const products = await Product.find({ _id: { $in: page.products } });
+        page.products = products;
+      }
+
       return res.json(page);
     }
 
-    const page = await Page.findOne({ link }).populate("products");
-    
+    const page = await Page.findOne({ pageId });
+
+    if (page?.products) {
+      const products = await Product.find({ _id: { $in: page.products } });
+      page.products = products;
+    }
+
     res.json(page);
   } catch (err) {
     console.error("❌ Error in v1 page.controller fetch_page:", err);
@@ -97,18 +137,18 @@ export const fetch_page = async (req, res) => {
 // delete page
 export const delete_page = async (req, res) => {
   try {
-    const { storeId, link } = req.params;
+    const { storeId, pageId } = req.params;
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
-    if (!link) return res.status(400).json({ error: "Page invalid" });
+    if (!pageId) return res.status(400).json({ error: "Page invalid" });
 
     const store = await Store.findOne({ storeId });
     if (!store) return res.status(404).json({ error: "Store not found" });
 
     const Page = await getTenantModel(store.dbName, "Page", pageSchema);
 
-    const result = await Page.deleteOne({ link });
+    const result = await Page.deleteOne({ pageId });
 
     if (result.deletedCount === 0)
       return res.status(404).json({ error: "Page not found" });

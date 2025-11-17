@@ -1,34 +1,77 @@
-
+TODO ------------main
 Fix theme
 
 add scrollbar to main html page
 add product/meal info to product object
 
 set & get page details for routing
-
---build admin pages
+show message if page not live
 
 create Category page
 
------- ADMIN pages
+_____________ TODO ------------- client
+
+prevent forms from showing error in initial state
+
+Accounts section
+
+Implement search logic
+Topbar - connect DB
+----------...............--------------........
+
+------ CLIENT pages
 
 sign up, login, verify email, forgot password, reset password
 create/edit profile, change email, change password, delete account
 
-dashboard, {create store}, {manage store}, {edit store}, {delete store}
-create page, manage page, edit page, preview page, delete page
-view products, create product, manage product, edit product
-view categories, add category
+-------------------------------------------
 
-Trash
+----------Restrictions
+
+Signup - free
+Create store - active plan
+
+-------------------------------------------
+
+Implement Trash in server
 
 ----.....---------
 
 // todo auth
 TEST USER AND AUTH
 
-show message if page not live
+Bluetooth barcode scanner
 
 UPGRADE---
 Redis
+cloudinary
+mongodb
 
+
+--build admin pages
+
+
+
+------------------------
+
+My Account
+Profile area - ID, fullname, email (Verified/not), Role(Marketer, Product Designer, Sales Manager, Frelancer)
+Edit profile
+
+Current plan - Store(1/4), Pages(1/5), Product(1/100)
+Details about the plan & Upgrade(Link to plans)
+
+
+
+---Payment Profile
+Current plan - status
+Plan duration, Expiry date
+Renewal (on/off)
+
+Payment history
+
+
+Settings
+
+
+-------------------------

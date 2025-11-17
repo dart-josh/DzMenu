@@ -1,7 +1,7 @@
 import { categorySchema, productSchema } from "../../models/product.schema.js";
 import { Store } from "../../models/store.model.js";
 import { getTenantModel } from "../../utils/tenantManager.js";
-import cloudinary from "../../lib/cloudinary.js";
+import cloudinary, { uploadToCloudinary } from "../../lib/cloudinary.js";
 
 // create product //! Test images
 export const create_product = async (req, res) => {
@@ -40,8 +40,8 @@ export const create_product = async (req, res) => {
       imageUrl = await addUpdateProductImage(req.file.buffer, storeId);
       if (imageUrl) productDetails.image = imageUrl;
 
-      //!
-      console.log(imageUrl);
+      // //!
+      // console.log(imageUrl);
     }
 
     const product = await Product.create(productDetails);
@@ -91,7 +91,21 @@ export const update_product = async (req, res) => {
       if (imageUrl) productDetails.image = imageUrl;
 
       //!
-      console.log(imageUrl);
+      // console.log(imageUrl);
+    }
+
+    if (productDetails.deleteImage && !req.file) {
+      const oldProduct = await Product.findOne({
+        productId: productDetails.productId,
+      });
+      if (!oldProduct)
+        return res.status(404).json({ error: "Product not found" });
+
+      const deleted = await deleteProductImage(oldProduct.image, storeId);
+      if (!deleted)
+        return res.status(400).json({ error: "Error updating image" });
+
+      productDetails.image = "";
     }
 
     const updatedProduct = await Product.findOneAndUpdate(
@@ -128,22 +142,46 @@ export const delete_product = async (req, res) => {
       productSchema
     );
 
-    const oldProduct = Product.findOne({ productId });
+    const oldProduct = await Product.findOne({ productId });
     if (!oldProduct)
-      return res.status(404).json({ error: "Product not found" });
-
-    const result = await Product.deleteOne({ productId });
-
-    if (result.deletedCount === 0)
       return res.status(404).json({ error: "Product not found" });
 
     if (oldProduct.image) {
       await deleteProductImage(oldProduct.image, storeId);
     }
 
+    const result = await Product.deleteOne({ productId });
+
+    if (result.deletedCount === 0)
+      return res.status(404).json({ error: "Product not found" });
+
     return res.status(200).json({ message: "Product deleted" });
   } catch (err) {
     console.error("❌ Error in v1 product.controller delete_product:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// get products
+export const get_products = async (req, res) => {
+  try {
+    const { storeId } = req.params;
+
+    if (!storeId) return res.status(400).json({ error: "Store invalid" });
+
+    const store = await Store.findOne({ storeId });
+    if (!store) return res.status(404).json({ error: "Store not found" });
+
+    const Product = await getTenantModel(
+      store.dbName,
+      "Product",
+      productSchema
+    );
+
+    const products = await Product.find({});
+    res.json(products);
+  } catch (err) {
+    console.error("❌ Error in v1 product.controller get_products:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -154,10 +192,9 @@ export const delete_product = async (req, res) => {
 
 // add category
 export const add_category = async (req, res) => {
-  // productId, name, price, image, category, description
   try {
     const { storeId } = req.params;
-    const { category } = req.body;
+    const { category, desc, iconId } = req.body;
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
@@ -178,8 +215,8 @@ export const add_category = async (req, res) => {
     if (category_exist)
       return res.status(409).json({ error: "Category exist already" });
 
-    const new_category = await Category.create({ category });
-    res.status(201).json({ message: "Category created", new_category });
+    const new_category = await Category.create({ category, desc, iconId });
+    res.status(201).json({ message: "Category added", new_category });
   } catch (err) {
     console.error("❌ Error in v1 product.controller add_category:", err);
     res.status(500).json({ error: "Server error" });
@@ -216,6 +253,30 @@ export const remove_category = async (req, res) => {
   }
 };
 
+// get categories
+export const get_categories = async (req, res) => {
+  try {
+    const { storeId } = req.params;
+
+    if (!storeId) return res.status(400).json({ error: "Store invalid" });
+
+    const store = await Store.findOne({ storeId });
+    if (!store) return res.status(404).json({ error: "Store not found" });
+
+    const Category = await getTenantModel(
+      store.dbName,
+      "Category",
+      categorySchema
+    );
+
+    const categories = await Category.find({});
+    res.json(categories);
+  } catch (err) {
+    console.error("❌ Error in v1 category.controller get_categories:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 //?
 
 //? UTILS
@@ -242,6 +303,7 @@ export const deleteProductImage = async (image, storeId) => {
   try {
     if (image) {
       const publicId = await image.split("/").pop().split(".")[0];
+      console.log("delete-----", publicId);
 
       await cloudinary.uploader.destroy(`${storeId}/products/${publicId}`);
     }
@@ -253,19 +315,4 @@ export const deleteProductImage = async (image, storeId) => {
   }
 };
 
-// Upload buffer to Cloudinary using upload_stream
-const uploadToCloudinary = (image, folder) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder, // optional: folder name on Cloudinary
-        resource_type: "auto", // auto-detect file type (image/video)
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-    stream.end(image);
-  });
-};
+

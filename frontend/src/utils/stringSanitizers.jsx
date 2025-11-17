@@ -120,11 +120,35 @@ export const sanitizeStoreId = (value) => {
     .slice(0, 20);               // limit to 25 characters
 }
 
+export const sanitizePageId = (value) => {
+  if (!value) return "";
+
+  return value
+    .toLowerCase()               // make lowercase
+    .trim()                      // remove surrounding spaces
+    .replace(/[^a-z0-9.-]+/g, "-") // replace invalid chars with "-"
+    .replace(/-+/g, "-")         // collapse multiple dashes
+    .replace(/^-|-$/g, "-")       // trim leading/trailing dashes
+    .slice(0, 20);               // limit to 25 characters
+}
+
+export const sanitizeProductId = (value) => {
+  if (!value) return "";
+
+  return value
+    .toLowerCase()               // make lowercase
+    .trim()                      // remove surrounding spaces
+    .replace(/[^a-z0-9.-]+/g, "-") // replace invalid chars with "-"
+    .replace(/-+/g, "-")         // collapse multiple dashes
+    .replace(/^-|-$/g, "-")       // trim leading/trailing dashes
+    .slice(0, 20);               // limit to 25 characters
+}
+
 export const sanitizeString = (value, limit=100) => {
   if (!value) return "";
 
   return value                            // remove leading/trailing spaces
-    .replace(/[^a-zA-Z0-9@(),.:;_\-\s']+/g, "") // remove unwanted chars
+    .replace(/[^a-zA-Z0-9@&(),.:;_\-\s']+/g, "") // remove unwanted chars
     .replace(/\s+/g, " ")                    // collapse multiple spaces
     .slice(0, limit);                          // optional: limit to 100 chars
 }

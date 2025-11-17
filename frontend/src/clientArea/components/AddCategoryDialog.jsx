@@ -1,11 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { iconsList } from "../../utils/globarvariables";
+import toast from "react-hot-toast";
+import { sanitizeString } from "../../utils/stringSanitizers";
 
 const AddCategoryDialog = ({ open, onClose, onSave }) => {
   const [category, setCategory] = useState("");
   const [desc, setDesc] = useState("");
   const [selectedIcon, setSelectedIcon] = useState(null);
+
+  useEffect(() => {
+    const cat = sanitizeString(category, 20)
+    setCategory(cat);
+  }, [category]);
+
+  useEffect(() => {
+    const des = sanitizeString(desc, 40)
+    setDesc(des);
+  }, [desc]);
+  
+  useEffect(() => {
+    if (open) {
+      // lock body scroll
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => (document.body.style.overflow = "");
+  }, [open]);
 
   if (!open) return null;
 
@@ -79,13 +102,22 @@ const AddCategoryDialog = ({ open, onClose, onSave }) => {
         {/* Footer */}
         <div className="mt-6 flex justify-end">
           <button
-            onClick={() => {
-              if (!category || !selectedIcon) return;
-              onSave({ name:category, desc, iconId: selectedIcon });
-              setCategory("");
-              setDesc("");
-              setSelectedIcon(null);
-              onClose();
+            onClick={async () => {
+              if (!category || category.length < 2) {
+                return toast.error("Invalid category", { id: "error1" });
+              }
+
+              const res = await onSave({
+                category,
+                desc,
+                iconId: selectedIcon,
+              });
+              if (res) {
+                setCategory("");
+                setDesc("");
+                setSelectedIcon(null);
+                onClose();
+              }
             }}
             className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:scale-[1.03] shadow-md transition-all"
           >

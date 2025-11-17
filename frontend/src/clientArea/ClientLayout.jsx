@@ -5,9 +5,14 @@ import { useState } from "react";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { Toaster } from "react-hot-toast";
 import NotificationContainer from "../components/NotificationContainer";
+import CreateShortcutDialog from "./components/CreateShortcutDialog";
+import { useClientStore } from "../store/useClientStore";
 
 const ClientLayout = () => {
+  const {activeStore} = useClientStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
 
   return (
     <div className="flex relative min-h-screen overflow-hidden bg-gray-400 px-3 xs:px-4">
@@ -39,6 +44,7 @@ const ClientLayout = () => {
           <Header
             setIsSidebarOpen={setIsSidebarOpen}
             isSidebarOpen={isSidebarOpen}
+            setCreateDialogOpen={setCreateDialogOpen}
           />
         </div>
 
@@ -56,6 +62,13 @@ const ClientLayout = () => {
           onClick={() => setIsSidebarOpen(false)}
         ></div>
       )}
+
+      <CreateShortcutDialog
+        isOpen={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        hasActiveStore={!!activeStore}
+        activeStore={activeStore?.storeId}
+      />
 
       <ConfirmDialog />
       <NotificationContainer />

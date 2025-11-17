@@ -18,3 +18,11 @@ export const useGeneralStore = create((set) => ({
     set({ confirmDetails: { ...confirmDetails }, openConfirm: true });
   },
 }));
+
+export const usePageHeaderStore = create((set) => ({
+  activePage: "Dashboard",
+
+  setActivePage: (value) => {
+    set({ activePage: value });
+  },
+}));

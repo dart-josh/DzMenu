@@ -46,7 +46,11 @@ const SetStoreData = ({ data }) => {
     setPageData(data);
   }, [data, setPageData]);
 
-  return <RoutePage pageType={data.pageType} />;
+  return (
+    <div className="bg-gradient-to-br from-slate-100 via-white to-slate-200">
+      <RoutePage pageType={data.pageType} />;
+    </div>
+  );
 };
 
 // Route page with (pageType)

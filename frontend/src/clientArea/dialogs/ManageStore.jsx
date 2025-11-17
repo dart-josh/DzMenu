@@ -34,23 +34,23 @@ const ManageStoreDialog = ({
   const [idError, setIdError] = useState("");
   const [nameError, setNameError] = useState("");
 
-  const [preview, setPreview] = useState(store?.logo || null);
+  const [preview, setPreview] = useState(store?.storeImage || null);
   const [formData, setFormData] = useState({
     storeId: store?.storeId || "",
     storeName: store?.storeName || "",
     shortInfo: store?.shortInfo || "",
     segment: store?.segment || "",
     slogan: store?.slogan || "",
-    logo: null,
+    image: null,
   });
 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "logo") {
+    if (name === "image") {
       const file = files[0];
-      setFormData((prev) => ({ ...prev, logo: file }));
+      setFormData((prev) => ({ ...prev, image: file }));
       setPreview(URL.createObjectURL(file));
     } else if (name === "storeId") {
       const id = sanitizeStoreId(value);
@@ -114,8 +114,8 @@ const ManageStoreDialog = ({
       existingIds.includes(formData.storeId.trim()) &&
       store?.storeId !== formData.storeId.trim()
     ) {
-      setIdError("This store ID already exists. Please choose another.");
-      return { error: "Store ID already exists", success: false };
+      setIdError("This store ID is not available. Please choose another.");
+      return { error: "Store ID not available", success: false };
     }
 
     return { success: true };
@@ -135,7 +135,7 @@ const ManageStoreDialog = ({
       existingIds.includes(formData.storeId.trim()) &&
       store?.storeId !== formData.storeId.trim()
     ) {
-      setIdError("This store ID already exists. Please choose another.");
+      setIdError("This store ID is not available. Please choose another.");
     } else setIdError("");
   }, [existingIds, formData.storeId, store?.storeId]);
 
@@ -169,9 +169,11 @@ const ManageStoreDialog = ({
       shortInfo: store?.shortInfo || "",
       segment: store?.segment || "",
       slogan: store?.slogan || "",
-      logo: null,
+      image: null,
     });
-  }, [open, store]);
+    setPreview(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -251,7 +253,6 @@ const ManageStoreDialog = ({
               </div>
 
               {/* Store ID */}
-
               <InputField
                 icon={<Building2 className="w-4 h-4" />}
                 label="Store ID"
@@ -319,7 +320,7 @@ const ManageStoreDialog = ({
             />
 
             {/* Store Logo */}
-            <div>
+            {/* <div>
               <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
                 Store Logo (375x300 recommended)
               </label>
@@ -351,7 +352,17 @@ const ManageStoreDialog = ({
                   </div>
                 )}
               </label>
-            </div>
+            </div> */}
+
+            <ImageArea
+              preview={preview}
+              store={store}
+              formData={formData}
+              isEditMode={isEditMode}
+              setFormData={setFormData}
+              setPreview={setPreview}
+              isLoading={isLoading}
+            />
 
             {/* Save Button */}
             {isEditMode && (
@@ -421,5 +432,95 @@ const TextAreaField = ({ icon, label, ...props }) => (
     </div>
   </div>
 );
+
+const ImageArea = ({
+  preview,
+  store,
+  formData,
+  isEditMode,
+  setFormData,
+  setPreview,
+  isLoading,
+}) => {
+  return (
+    <div>
+      <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+        Store Logo (375x300 recommended)
+      </label>
+
+      <div className="flex gap-4 flex-wrap">
+        {/* Old image */}
+        {store?.storeImage && !formData.deleteImage && (
+          <div className="relative w-28 h-28">
+            <img
+              src={store.storeImage}
+              alt="Old"
+              className="w-28 h-28 object-cover rounded-xl shadow-md"
+            />
+            {isEditMode && (
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, deleteImage: true }))
+                }
+                className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md"
+              >
+                ✕
+              </button>
+            )}
+            <div className="text-xs text-gray-500 mt-1 text-center">
+              Current Image
+            </div>
+          </div>
+        )}
+
+        {/* New image selector */}
+        <label
+          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer transition ${
+            isEditMode
+              ? "hover:bg-blue-50 dark:hover:bg-zinc-800 border-blue-400/50"
+              : "opacity-60 cursor-not-allowed"
+          } w-28 h-28`}
+        >
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              setFormData((prev) => ({
+                ...prev,
+                image: file,
+                deleteImage: false,
+              }));
+              setPreview(URL.createObjectURL(file));
+            }}
+            className="hidden"
+            disabled={!isEditMode || isLoading}
+          />
+
+          {preview ? (
+            <div className="relative w-28 h-28">
+              <img
+                src={preview}
+                alt="Preview"
+                className="w-28 h-28 object-cover rounded-xl shadow-md"
+              />
+              <div className="text-xs text-gray-500 mt-1 text-center">
+                New Image
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center text-gray-500">
+              <Upload className="w-6 h-6 mb-1" />
+              <span className="text-sm">Upload Image</span>
+            </div>
+          )}
+        </label>
+      </div>
+    </div>
+  );
+};
 
 export default ManageStoreDialog;

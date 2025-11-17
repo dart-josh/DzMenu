@@ -29,8 +29,13 @@ import {
   Cloud,
   Cpu,
   Heart,
+  Grid,
+  List,
+  Rows3,
+  Grid3X3,
 } from "lucide-react";
 export const iconsList = [
+  { id: 0, icon: <Smartphone />, label: "Default" },
   { id: 1, icon: <ShoppingBag />, label: "Shopping" },
   { id: 2, icon: <Coffee />, label: "Coffee" },
   { id: 3, icon: <Utensils />, label: "Meals" },
@@ -61,4 +66,36 @@ export const iconsList = [
   { id: 28, icon: <Cloud />, label: "Cloud" },
   { id: 29, icon: <Cpu />, label: "Hardware" },
   { id: 30, icon: <Heart />, label: "Health" },
+];
+
+export const pageTypes = (className = "w-4 h-4") => [
+  {
+    id: "Product",
+    icon: <Grid className={className} />,
+    lists: ["grid", "list"],
+  },
+  {
+    id: "Menu",
+    icon: <List className={className} />,
+    lists: ["grid", "list", "menu"],
+  },
+  { id: "Slideview", icon: <Rows3 className={className} />, lists: ["grid"] },
+];
+
+export const pageListStyles = [
+  {
+    id: "grid",
+    label: "Grid",
+    preview: <Grid3X3 className="w-6 h-6" />,
+  },
+  {
+    id: "list",
+    label: "List",
+    preview: <List className="w-6 h-6" />,
+  },
+  {
+    id: "menu",
+    label: "Menu",
+    preview: <Rows3 className="w-6 h-6" />,
+  },
 ];
