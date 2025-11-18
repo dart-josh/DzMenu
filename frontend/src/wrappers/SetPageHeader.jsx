@@ -5,7 +5,7 @@ const SetPageHeader = ({ title, children }) => {
   const { setActivePage } = usePageHeaderStore();
 
   useEffect(() => {
-    setActivePage(title || "Dashboard");
+    setActivePage(title || "");
   }, [title, setActivePage]);
 
   return <>{children}</>; // ✅ Return JSX, not an object

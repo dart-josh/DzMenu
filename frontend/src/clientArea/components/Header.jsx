@@ -6,14 +6,14 @@ import UserMenuDropdown from "../userArea/components/UserMenuDropdown";
 import InboxDropdown from "./InboxDropdown";
 import SearchDropdown from "./SearchDropdown";
 
-const Header = ({ setIsSidebarOpen, isSidebarOpen, setCreateDialogOpen }) => {
+const Header = ({ setIsSidebarOpen, isSidebarOpen, setCreateDialogOpen, showSidebar }) => {
   const { activePage } = usePageHeaderStore();
 
   return (
     <div className="h-18 flex gap-2 lg:gap-5 items-center w-full">
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="md:hidden"
+        className={`${showSidebar ? 'md:hidden' : ''}`}
       >
         <LogoTileLarge />
       </button>

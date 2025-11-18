@@ -10,7 +10,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { useGeneralStore } from "../../store/useGeneralStore";
 
-const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
+const Sidebar = ({ setIsSidebarOpen, isSidebarOpen, showSidebar }) => {
   const { activeStore, stores, getMyStores } = useClientStore();
   const { fetchProducts, categories } = useClientProductStore();
   const { fetchPages, pages } = useClientPageStore();
@@ -62,7 +62,7 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
 
     setSideItems(updatedList);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stores]);
+  }, [stores, showSidebar]);
 
   // update pages
   useEffect(() => {
@@ -90,7 +90,7 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
 
     setSideItems(updatedList);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pages, activeStore]);
+  }, [pages, activeStore, showSidebar]);
 
   // update products categories
   useEffect(() => {
@@ -119,7 +119,7 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
 
     if (activeStore?.storeId) updateProductSideItems(categories);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStore, categories]);
+  }, [activeStore, categories, showSidebar]);
 
   // update active store & fetch store data
   useEffect(() => {
@@ -135,7 +135,7 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
     setSideItems(updatedList);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStore]);
+  }, [activeStore, showSidebar]);
 
   // get stores
   useEffect(() => {
@@ -143,7 +143,7 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen }) => {
   }, [getMyStores]);
 
   return (
-    <div className="flex flex-col h-full w-[250px] md:w-[210px] lg:w-[250px] pt-4 pl-2 md:pl-3 lg:pl-4">
+    <div className={`${!showSidebar ? 'hidden' : 'flex'} flex-col h-full w-[250px] md:w-[210px] lg:w-[250px] pt-4 pl-2 md:pl-3 lg:pl-4`}>
       <div onClick={closeSidebar} className="mb-6">
         <LogoTileLarge />
       </div>

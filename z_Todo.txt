@@ -13,7 +13,9 @@ _____________ TODO ------------- client
 
 prevent forms from showing error in initial state
 
-Accounts section
+#---####-----Accounts section
+- Add renew plan with dialog to input & save card
+- connect all with database
 
 Implement search logic
 Topbar - connect DB
@@ -54,24 +56,6 @@ mongodb
 
 ------------------------
 
-My Account
-Profile area - ID, fullname, email (Verified/not), Role(Marketer, Product Designer, Sales Manager, Frelancer)
-Edit profile
-
-Current plan - Store(1/4), Pages(1/5), Product(1/100)
-Details about the plan & Upgrade(Link to plans)
-
-
-
----Payment Profile
-Current plan - status
-Plan duration, Expiry date
-Renewal (on/off)
-
-Payment history
-
-
-Settings
 
 
 -------------------------

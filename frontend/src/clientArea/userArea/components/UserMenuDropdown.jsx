@@ -28,9 +28,9 @@ export default function UserMenuDropdown() {
       href: "/client/account",
     },
     {
-      title: "My Stores",
+      title: "Store Plans",
       icon: <Store className="w-5 h-5 text-emerald-500" />,
-      href: "/client/store",
+      href: "/client/plans",
     },
     {
       title: "Payment Profile",

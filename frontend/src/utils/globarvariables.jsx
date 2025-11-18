@@ -33,6 +33,10 @@ import {
   List,
   Rows3,
   Grid3X3,
+  Package,
+  Star,
+  Crown,
+  Rocket,
 } from "lucide-react";
 export const iconsList = [
   { id: 0, icon: <Smartphone />, label: "Default" },
@@ -97,5 +101,88 @@ export const pageListStyles = [
     id: "menu",
     label: "Menu",
     preview: <Rows3 className="w-6 h-6" />,
+  },
+];
+
+export const plans = [
+  {
+    id: "starter",
+    name: "Starter",
+    icon: <Package className="w-7 h-7 text-blue-500" />,
+    tagline: "Perfect for small businesses taking their first digital step.",
+    limits: {
+      stores: 1,
+      pages: 2,
+      products: 50,
+    },
+    addons: [
+      { label: "Extra Store", price: "$4.99 / store" },
+      { label: "Extra Page", price: "$1.99 / page" },
+      { label: "Extra 50 Products", price: "$2.99" },
+    ],
+    price: "$5 / month",
+    yearlyPrice: "$115 / year",
+    accent: "blue",
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    icon: <Star className="w-7 h-7 text-purple-500" />,
+    tagline: "Designed for growing brands and multi-category businesses.",
+    limits: {
+      stores: 3,
+      pages: 10,
+      products: 300,
+    },
+    addons: [
+      { label: "Extra Store", price: "$3.99 / store" },
+      { label: "Extra Page", price: "$1.49 / page" },
+      { label: "Extra 100 Products", price: "$3.99" },
+    ],
+    price: "$12 / month",
+    yearlyPrice: "$115 / year",
+    mostPopular: true,
+    accent: "purple",
+  },
+  {
+    id: "business",
+    name: "Business",
+    icon: <Crown className="w-7 h-7 text-amber-500" />,
+    tagline: "For structured restaurants, boutiques, lounges & enterprises.",
+    limits: {
+      stores: 10,
+      pages: 25,
+      products: 1_000,
+    },
+    addons: [
+      { label: "Extra Store", price: "$2.99 / store" },
+      { label: "Extra Page", price: "$0.99 / page" },
+      { label: "Extra 200 Products", price: "$4.99" },
+    ],
+    price: "$25 / month",
+    yearlyPrice: "$115 / year",
+    accent: "amber",
+    support: "Premium"
+  },
+  {
+    id: "elite",
+    name: "Elite",
+    icon: <Rocket className="w-7 h-7 text-cyan-500" />,
+    tagline:
+      "Unlimited scalability. Built for franchises, chains, and large brands.",
+    limits: {
+      stores: "Unlimited",
+      pages: "Unlimited",
+      products: "Unlimited",
+    },
+    addons: [
+      { label: "Priority Support", price: "Included" },
+      { label: "Dedicated Success Manager", price: "Included" },
+      { label: "Custom Integrations", price: "Request Quote" },
+    ],
+    price: "$49 / month",
+    yearlyPrice: "$115 / year",
+    accent: "cyan",
+    support: "Premium"
   },
 ];

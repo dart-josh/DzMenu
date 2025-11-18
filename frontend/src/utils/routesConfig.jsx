@@ -2,14 +2,16 @@ import ClientLayout from "../clientArea/ClientLayout";
 import ManageStore from "../clientArea/pages/ManageStore";
 import Dashboard from "../clientArea/pages/Dashboard";
 import FetchPageDetails from "../wrappers/FetchPageDetails";
-import RequireAuth from "../wrappers/RequireAuth";
 import StoreList from "../clientArea/pages/StoreList";
 import ProductsPage from "../clientArea/pages/ProductsPage";
 import PagesList from "../clientArea/pages/PagesList";
 import ManagePage from "../clientArea/pages/ManagePage";
 import SetPageHeader from "../wrappers/SetPageHeader";
 import Client404 from "../clientArea/components/Client404";
-import MyAccount from "../clientArea/userArea/pages/My AccountPage";
+import MyAccount from "../clientArea/userArea/pages/MyAccountPage";
+import PlansPage from "../clientArea/userArea/pages/PlansPage";
+import PaymentProfile from "../clientArea/userArea/pages/PaymentProfilePage";
+import SettingsPage from "../clientArea/userArea/pages/SettingsPage";
 
 const routes = [
   {
@@ -95,6 +97,30 @@ const routes = [
         element: (
           <SetPageHeader title="My Account">
             <MyAccount />
+          </SetPageHeader>
+        ),
+      },
+      {
+        path: "plans",
+        element: (
+          <SetPageHeader title="Plans & Packages">
+            <PlansPage />
+          </SetPageHeader>
+        ),
+      },
+      {
+        path: "payments",
+        element: (
+          <SetPageHeader title="Payments">
+            <PaymentProfile />
+          </SetPageHeader>
+        ),
+      },
+       {
+        path: "settings",
+        element: (
+          <SetPageHeader title="">
+            <SettingsPage />
           </SetPageHeader>
         ),
       },
