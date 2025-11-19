@@ -4,6 +4,8 @@ import axios from "axios";
 const dev_mode = process.env.NODE_ENV === "development";
 const server_prefix = dev_mode ? "http://localhost:5000/api/v1" : "/api/v1";
 
+axios.defaults.withCredentials = true;
+
 //?------- STORE ------------------
 
 // create store
@@ -414,9 +416,157 @@ export const get_categories = async (storeId) => {
 //?----------------------------------
 
 //?------- USER ------------------
-//!
+
+// create profile
+export const createProfile = async (data) => {
+  try {
+    const response = await axios.post(
+      `${server_prefix}/user/createProfile`,
+      data
+    );
+
+    return {
+      success: true,
+      message: response.data.message,
+      user: response.data.user,
+    };
+  } catch (error) {
+    console.log("Error in createProfile function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+// edit profile
+export const editProfile = async (data) => {
+  try {
+    const response = await axios.post(
+      `${server_prefix}/user/editProfile`,
+      data
+    );
+
+    return {
+      success: true,
+      message: response.data.message,
+      user: response.data.user,
+    };
+  } catch (error) {
+    console.log("Error in editProfile function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+// startEmailVerification
+export const startEmailVerification = async () => {
+  try {
+    const response = await axios.post(
+      `${server_prefix}/user/startEmailVerification`
+    );
+
+    return {
+      success: true,
+      message: response.data.message,
+    };
+  } catch (error) {
+    console.log("Error in startEmailVerification function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
 
 //?------- AUTH ------------------
-//!
+
+// signup
+export const signup = async (data) => {
+  try {
+    const response = await axios.post(`${server_prefix}/auth/signup`, data);
+
+    return {
+      success: true,
+      message: response.data.message,
+      user: response.data.user,
+    };
+  } catch (error) {
+    console.log("Error in signup function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+// login
+export const login = async (data) => {
+  try {
+    const response = await axios.post(`${server_prefix}/auth/login`, data);
+
+    return {
+      success: true,
+      message: response.data.message,
+      user: response.data.user,
+    };
+  } catch (error) {
+    console.log("Error in login function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+// getAuthUser
+export const getAuthUser = async () => {
+  try {
+    const response = await axios.get(`${server_prefix}/auth/getAuthUser`);
+
+    return response.data;
+  } catch (error) {
+    console.log("Error in getAuthUser function - ", error);
+    return null;
+  }
+};
+
+export const logout = async () => {
+  try {
+    const response = await axios.post(`${server_prefix}/auth/logout`);
+
+    return {
+      success: true,
+      message: response.data.message,
+    };
+  } catch (error) {
+    console.log("Error in logout function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+// verifyEmail
+export const verifyEmail = async (code) => {
+  try {
+    const response = await axios.post(`${server_prefix}/auth/verifyEmail`, {code});
+
+    return {
+      success: true,
+      message: response.data.message,
+      user: response.data.user,
+    };
+  } catch (error) {
+    console.log("Error in verifyEmail function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
 
 //?----------------------------------

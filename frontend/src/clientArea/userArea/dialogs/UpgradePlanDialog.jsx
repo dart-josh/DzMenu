@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle } from "lucide-react";
-import { plans } from "../../../utils/globarvariables";
+import { plans } from "../../../utils/globalVariables.jsx";
 import { useEffect, useState } from "react";
 
 export default function UpgradePlanDialog({
@@ -145,7 +145,11 @@ export default function UpgradePlanDialog({
                   <p className="mt-2 text-gray-900 dark:text-gray-100 font-bold text-lg">
                     {billing === "monthly"
                       ? plan.price
-                      : `$${(parseFloat(plan.price.replace("$", "")) * 12 * 0.8).toFixed(0)}/yr`}
+                      : `$${(
+                          parseFloat(plan.price.replace("$", "")) *
+                          12 *
+                          0.8
+                        ).toFixed(0)}/yr`}
                   </p>
 
                   {plan.mostPopular && (

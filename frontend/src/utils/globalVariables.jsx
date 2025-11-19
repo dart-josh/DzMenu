@@ -162,7 +162,7 @@ export const plans = [
     price: "$25 / month",
     yearlyPrice: "$115 / year",
     accent: "amber",
-    support: "Premium"
+    support: "Premium",
   },
   {
     id: "elite",
@@ -183,6 +183,13 @@ export const plans = [
     price: "$49 / month",
     yearlyPrice: "$115 / year",
     accent: "cyan",
-    support: "Premium"
+    support: "Premium",
   },
+];
+
+export const userRoles = [
+  "Marketer",
+  "Product Designer",
+  "Sales Manager",
+  "Freelancer",
 ];

@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../../models/user.model.js";
 import { generate_userId } from "../../utils/serverUtils.js";
 import { redis } from "../../lib/redis.js";
+import { cleanUserDetails } from "./user.controller.js";
 
 export const signup = async (req, res) => {
   const { email, password } = req.body;
@@ -11,6 +12,10 @@ export const signup = async (req, res) => {
   try {
     if (!email || !password) {
       return res.status(400).json({ error: "Invalid user" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password too short" });
     }
 
     const userAlreadyExists = await User.findOne({ email });
@@ -38,7 +43,7 @@ export const signup = async (req, res) => {
 
     // authentication
     const { accessToken, refreshToken } = generateTokens(user._id);
-    await storeRefreshToken(user._id, refreshToken);
+    // await storeRefreshToken(user._id, refreshToken);
     setCookies(res, accessToken, refreshToken);
 
     //! await sendVerificationEmail(user.email, verificationToken);
@@ -66,7 +71,7 @@ export const verifyEmail = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({
-        error: "Invalid or expired verification code",
+        error: "Invalid or expired code",
       });
     }
 
@@ -79,10 +84,7 @@ export const verifyEmail = async (req, res) => {
 
     res.status(200).json({
       message: "Email verified",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
+      user: cleanUserDetails(user._doc),
     });
   } catch (error) {
     console.log("❌ Error in v1 auth.controller verifyEmail ", error);
@@ -104,7 +106,7 @@ export const login = async (req, res) => {
 
     // authentication
     const { accessToken, refreshToken } = generateTokens(user._id);
-    await storeRefreshToken(user._id, refreshToken);
+    // await storeRefreshToken(user._id, refreshToken);
     setCookies(res, accessToken, refreshToken);
 
     user.lastLogin = new Date();
@@ -125,7 +127,7 @@ export const login = async (req, res) => {
 
 export const getAuthUser = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const user = cleanUserDetails(req.user._doc);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -178,9 +180,7 @@ export const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ error: "Invalid or expired reset token" });
+      return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 
     // update password
@@ -193,8 +193,7 @@ export const resetPassword = async (req, res) => {
 
     //! await sendResetSuccessEmail(user.email);
 
-    res
-      .json({ message: "Password reset" });
+    res.json({ message: "Password reset" });
   } catch (error) {
     console.log("❌ Error in v1 auth.controller resetPassword ", error);
     res.status(500).json({ error: "Server error" });
@@ -206,7 +205,7 @@ export const logout = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
     if (refreshToken) {
       const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
-      await redis.del(`refresh_token:${decoded.userId}`);
+      // await redis.del(`refresh_token:${decoded.userId}`);
     }
 
     res.clearCookie("accessToken");

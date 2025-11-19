@@ -1,6 +1,6 @@
 import { CheckCircle, Plus } from "lucide-react";
-import { plans } from "../../../utils/globarvariables";
-import { useUserStore } from "../../../store/useUserStore";
+import { plans } from "../../../utils/globalVariables.jsx";
+import { useUserStore } from "../store/useUserStore";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useState } from "react";

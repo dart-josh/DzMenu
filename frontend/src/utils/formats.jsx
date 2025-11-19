@@ -29,3 +29,13 @@ export const formatReadableDate = (date) => {
 
   return d.toLocaleDateString("en-US", options);
 };
+
+export const getInitials = (value) => {
+  if (!value) return '';
+
+  if (value.split(' ').length > 1) {
+    return `${value.split(' ')[0].substring(0,1)}${value.split(' ')[1].substring(0,1)}`
+  } else {
+    return value.substring(0,2).toUpperCase();
+  }
+}

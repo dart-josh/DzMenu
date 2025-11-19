@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { PlusCircle, Hash, X, Trash2, ShoppingBag } from "lucide-react";
 import AddCategoryDialog from "./AddCategoryDialog";
-import { iconsList } from "../../utils/globarvariables";
+import { iconsList } from "../../utils/globalVariables.jsx";
 import { useClientProductStore } from "../../store/useClientStore";
 import {
   add_category,
@@ -100,16 +100,14 @@ const CategoryManager = ({ storeId }) => {
       {/* Categories Grid (show max 8) */}
       <div className="rounded-2xl bg-white/80 dark:bg-gray-900/70 backdrop-blur-md px-3 xs:px-5 py-5 border border-gray-200 dark:border-gray-700 shadow-sm w-full">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 xs:gap-4 w-full">
-          {categoriesTD
-            .slice(0, 6)
-            .map((cat, i) => (
-              <CategoryTile
-                key={i}
-                cat={cat}
-                onDelete={() => handleDelete(cat.category)}
-                canEdit={canEdit}
-              />
-            ))}
+          {categoriesTD.slice(0, 6).map((cat, i) => (
+            <CategoryTile
+              key={i}
+              cat={cat}
+              onDelete={() => handleDelete(cat.category)}
+              canEdit={canEdit}
+            />
+          ))}
         </div>
 
         {/* View More Button */}
@@ -154,9 +152,11 @@ const CategoryTile = ({ cat, onDelete, canEdit }) => {
       className="relative group h-[90px] bg-gradient-to-br from-blue-50/50 to-white dark:from-gray-800 dark:to-gray-900 border border-blue-100 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-lg hover:border-blue-400 transition-all duration-200 p-3 flex flex-col justify-center"
     >
       <div className="flex w-ful items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold text-sm">
-        <div>{iconsList.find((c) => c.id === cat.iconId)?.icon || (
-          <ShoppingBag className="size-5" />
-        )}</div>
+        <div>
+          {iconsList.find((c) => c.id === cat.iconId)?.icon || (
+            <ShoppingBag className="size-5" />
+          )}
+        </div>
         <div className="w-full">{cat.category}</div>
       </div>
       <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
@@ -186,7 +186,6 @@ const CategoryListDialog = ({
   onDelete,
   canEdit,
 }) => {
-
   useEffect(() => {
     if (open) {
       // lock body scroll

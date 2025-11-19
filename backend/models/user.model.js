@@ -13,8 +13,12 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true, minlength: 6 },
     fullname: { type: String },
-    dob: { type: String },
-    contactNumber: { type: String },
+    userRole: { type: String },
+    // contactNumber: { type: String },
+
+    planDetails: {type: Map},
+    paymentHistory: {type: Map},
+
     lastLogin: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },

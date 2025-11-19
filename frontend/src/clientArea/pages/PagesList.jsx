@@ -12,7 +12,7 @@ import {
 import { Link, useParams } from "react-router-dom";
 import { useClientPageStore, useClientStore } from "../../store/useClientStore";
 import { useEffect, useState } from "react";
-import { pageTypes } from "../../utils/globarvariables";
+import { pageTypes } from "../../utils/globalVariables.jsx";
 import { useGeneralStore } from "../../store/useGeneralStore";
 import { delete_page, togglePageLive } from "../../helpers/serverHelpers";
 import { notify } from "../../store/useNotificationStore";
@@ -31,10 +31,7 @@ const PagesList = () => {
     setCanEdit(activeStore?.storeId === storeId);
   }, [storeId, activeStore]);
 
-  if (!activeStore?.storeId)
-    return (
-      <NoActiveStore />
-    );
+  if (!activeStore?.storeId) return <NoActiveStore />;
 
   return (
     <div className="w-full py-10 pt-5">

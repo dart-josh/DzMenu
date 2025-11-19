@@ -1,8 +1,4 @@
-import {
-  Circle,
-  EyeOff,
-  Loader,
-} from "lucide-react";
+import { Circle, EyeOff, Loader } from "lucide-react";
 import {
   Cog,
   Copy,
@@ -44,7 +40,7 @@ import { useGeneralStore } from "../../store/useGeneralStore";
 import ManageStoreDialog from "../dialogs/ManageStore";
 import { notify } from "../../store/useNotificationStore";
 import ManageProductDialog from "../dialogs/ManageProduct";
-import { pageTypes } from "../../utils/globarvariables";
+import { pageTypes } from "../../utils/globalVariables.jsx";
 import { StoreNotFoundPage } from "../components/StoreNotFoundPage";
 import { ManageStoreShimmer } from "../shimmers/ManageStoreShimmer";
 
@@ -76,7 +72,7 @@ const ManageStore = () => {
   useEffect(() => {
     scrollToTop();
   }, [store]);
-  
+
   if (isLoading) return <ManageStoreShimmer />;
 
   if (!store) return <StoreNotFoundPage />;
@@ -391,7 +387,9 @@ const StoreSettings = ({ store }) => {
     else {
       notify({
         title: "Store Updated",
-        message: `Your store with ID ${cat?.store?.storeId} was successfully ${isCreate ? "created" : "updated"}!`,
+        message: `Your store with ID ${cat?.store?.storeId} was successfully ${
+          isCreate ? "created" : "updated"
+        }!`,
         type: "success",
         duration: 4000,
       });

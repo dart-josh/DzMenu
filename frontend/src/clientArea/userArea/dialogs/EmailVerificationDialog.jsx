@@ -1,12 +1,31 @@
 import { useState } from "react";
 import { Mail, ShieldCheck, ArrowRight, CheckCircle } from "lucide-react";
-import toast from "react-hot-toast"
+import {
+  startEmailVerification,
+  verifyEmail,
+} from "../../../helpers/serverHelpers";
+import toast from "react-hot-toast";
+import { useUserStore } from "../store/useUserStore";
+import { useEffect } from "react";
 
 const EmailVerificationDialog = ({ isOpen, onClose, email }) => {
+  const { updateUser } = useUserStore();
+
   const [step, setStep] = useState(1);
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loadingSend, setLoadingSend] = useState(false);
   const [loadingVerify, setLoadingVerify] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // lock body scroll
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => (document.body.style.overflow = "");
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -31,27 +50,32 @@ const EmailVerificationDialog = ({ isOpen, onClose, email }) => {
     }
   };
 
-  const sendCode = () => {
+  const sendCode = async () => {
     setLoadingSend(true);
+    const res = await startEmailVerification();
+    setLoadingSend(false);
 
-    setTimeout(() => {
-      setLoadingSend(false);
+    if (res.success) {
+      toast.success(res.message, { id: "success1" });
       setStep(2);
-    }, 1500); // simulate API call
+    } else toast.error(res.message, { id: "error1" });
   };
 
-  const verifyCode = () => {
+  const verifyCode = async () => {
     if (code.some((digit) => digit === "")) {
-      toast.error("Please enter all 6 digits.", {id: 'error1'});
+      toast.error("Please enter all 6 digits.", { id: "error1" });
       return;
     }
 
     setLoadingVerify(true);
+    const res = await verifyEmail(code.join(""));
+    setLoadingVerify(false);
 
-    setTimeout(() => {
-      setLoadingVerify(false);
+    if (res.success) {
+      toast.success(res.message, { id: "success1" });
+      if (res.user) updateUser(res.user);
       setStep(3);
-    }, 1500);
+    } else toast.error(res.message, { id: "error1" });
   };
 
   return (
@@ -64,8 +88,8 @@ const EmailVerificationDialog = ({ isOpen, onClose, email }) => {
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-sm bg-white/70 backdrop-blur-xl border border-white/40 
-                      shadow-lg rounded-2xl p-6 animate-fadeIn"
+        className="relative w-full max-w-sm scale-95 bg-white/70 backdrop-blur-xl border border-white/40 
+                      shadow-lg rounded-2xl p-4 sm:p-6 animate-fadeIn"
       >
         {/* STEP WRAPPER */}
         {step === 1 && (
@@ -159,7 +183,7 @@ const StepCode = ({
     </p>
 
     {/* PIN INPUT */}
-    <div className="flex justify-between gap-2">
+    <div className="flex justify-center xs:justify-between gap-2">
       {code.map((digit, i) => (
         <input
           key={i}
@@ -170,7 +194,7 @@ const StepCode = ({
           onChange={(e) => handleCodeChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           autoFocus={i === 0}
-          className="w-12 h-12 text-center text-xl font-semibold
+          className="size-11 xs:size-12 text-center text-xl font-semibold
                      bg-white/70 backdrop-blur-sm border border-white/60
                      rounded-xl shadow focus:outline-none
                      focus:ring-2 focus:ring-indigo-500 transition"

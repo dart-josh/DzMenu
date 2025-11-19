@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { iconsList } from "../../utils/globarvariables";
+import { iconsList } from "../../utils/globalVariables.jsx";
 import toast from "react-hot-toast";
 import { sanitizeString } from "../../utils/stringSanitizers";
 
@@ -10,15 +10,15 @@ const AddCategoryDialog = ({ open, onClose, onSave }) => {
   const [selectedIcon, setSelectedIcon] = useState(null);
 
   useEffect(() => {
-    const cat = sanitizeString(category, 20)
+    const cat = sanitizeString(category, 20);
     setCategory(cat);
   }, [category]);
 
   useEffect(() => {
-    const des = sanitizeString(desc, 40)
+    const des = sanitizeString(desc, 40);
     setDesc(des);
   }, [desc]);
-  
+
   useEffect(() => {
     if (open) {
       // lock body scroll

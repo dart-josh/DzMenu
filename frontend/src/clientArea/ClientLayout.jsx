@@ -8,8 +8,10 @@ import NotificationContainer from "../components/NotificationContainer";
 import CreateShortcutDialog from "./components/CreateShortcutDialog";
 import { useClientStore } from "../store/useClientStore";
 import { scrollToTop } from "../utils/generalFns";
+import { useUserStore } from "./userArea/store/useUserStore";
 
 const ClientLayout = () => {
+  const { fetchUser } = useUserStore();
   const { activeStore } = useClientStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -25,11 +27,15 @@ const ClientLayout = () => {
       setShowSidebar(true);
     }
 
-    scrollToTop()
+    scrollToTop();
   }, [pathname]);
 
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
   return (
-    <div className="flex relative min-h-screen overflow-hidden bg-gray-400 px-3 xs:px-4">
+    <div className="flex relative min-h-screen overflow-hidden bg-gray-400 px-1 xs:px-4">
       {/* Mobile sidebar */}
       {
         <div

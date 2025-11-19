@@ -1,13 +1,12 @@
 import bcryptjs from "bcryptjs";
-import mongoose from "mongoose";
 import User from "../../models/user.model.js";
 import DeletedUser from "../../models/deleted_user.model.js";
 
 export const createProfile = async (req, res) => {
-  const { email, fullname, contactNumber } = req.body;
+  const { fullname, userRole } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: "Email required" });
+  if (!req.user?.userId) {
+    return res.status(400).json({ error: "User required" });
   }
 
   if (!fullname) {
@@ -15,22 +14,19 @@ export const createProfile = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = req.user;
 
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
 
     user.fullname = fullname;
-    user.contactNumber = contactNumber;
+    user.userRole = userRole;
     await user.save();
 
     res.status(201).json({
       message: "Profile Created",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
+      user: cleanUserDetails(user._doc),
     });
   } catch (error) {
     console.log("❌ Error in v1 user.controller createProfile ", error);
@@ -39,10 +35,10 @@ export const createProfile = async (req, res) => {
 };
 
 export const editProfile = async (req, res) => {
-  const { email, password, fullname, contactNumber } = req.body;
+  const { password, fullname, userRole } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: "Email required" });
+  if (!req.user?.userId) {
+    return res.status(400).json({ error: "User required" });
   }
 
   if (!password) {
@@ -54,7 +50,7 @@ export const editProfile = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = req.user;
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -65,18 +61,49 @@ export const editProfile = async (req, res) => {
     }
 
     user.fullname = fullname;
-    user.contactNumber = contactNumber;
+    user.userRole = userRole;
     await user.save();
 
     res.json({
       message: "Profile updated",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
+      user: cleanUserDetails(user._doc),
     });
   } catch (error) {
     console.log("❌ Error in v1 user.controller editProfile ", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const startEmailVerification = async (req, res) => {
+  if (!req.user?.userId) {
+    return res.status(400).json({ error: "User required" });
+  }
+
+  const verificationToken = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    user.verificationToken = verificationToken;
+    user.verificationTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
+    await user.save();
+
+    //! await sendResetSuccessEmail(user.email);
+
+    res.status(201).json({
+      message: "Verification email sent",
+    });
+  } catch (error) {
+    console.log(
+      "❌ Error in v1 user.controller startEmailVerification ",
+      error
+    );
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -234,11 +261,30 @@ export const deleteAccount = async (req, res) => {
     });
     await deletedUser.save();
 
-    await User.deleteOne({_id: userId});
+    await User.deleteOne({ _id: userId });
 
     res.json({ message: "Account deleted" });
   } catch (error) {
-    console.log("❌ Error in v1 user.controller deleteAccount: ", error.message);
+    console.log(
+      "❌ Error in v1 user.controller deleteAccount: ",
+      error.message
+    );
     res.status(500).json({ error: "Server error" });
   }
+};
+
+// UTILS
+
+export const cleanUserDetails = (user) => {
+  user.password = undefined;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpiresAt = undefined;
+  user.verificationToken = undefined;
+  user.verificationTokenExpiresAt = undefined;
+  user.createdAt = undefined;
+  user.updatedAt = undefined;
+  user._id = undefined;
+  user.__v = undefined;
+
+  return user;
 };

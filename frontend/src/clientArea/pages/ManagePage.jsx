@@ -32,7 +32,7 @@ import {
   sanitizeString,
   validateString,
 } from "../../utils/stringSanitizers";
-import { pageListStyles, pageTypes } from "../../utils/globarvariables";
+import { pageListStyles, pageTypes } from "../../utils/globalVariables.jsx";
 import {
   useClientPageStore,
   useClientProductStore,
