@@ -104,6 +104,7 @@ export const pageListStyles = [
   },
 ];
 
+// '20k 99k 250k 900k'   ''
 export const plans = [
   {
     id: "starter",
@@ -120,8 +121,27 @@ export const plans = [
       { label: "Extra Page", price: "$1.99 / page" },
       { label: "Extra 50 Products", price: "$2.99" },
     ],
-    price: "$5 / month",
-    yearlyPrice: "$115 / year",
+    price: 10,
+    yearlyPrice: 96,
+    accent: "blue",
+  },
+  {
+    id: "starter_plus",
+    name: "Starter plus",
+    icon: <Package className="w-7 h-7 text-blue-500" />,
+    tagline: "Perfect for small businesses with more amount of products.",
+    limits: {
+      stores: 1,
+      pages: 3,
+      products: 300,
+    },
+    addons: [
+      { label: "Extra Store", price: "$4.99 / store" },
+      { label: "Extra Page", price: "$1.99 / page" },
+      { label: "Extra 50 Products", price: "$2.99" },
+    ],
+    price: 35,
+    yearlyPrice: 336,
     accent: "blue",
   },
   {
@@ -139,8 +159,8 @@ export const plans = [
       { label: "Extra Page", price: "$1.49 / page" },
       { label: "Extra 100 Products", price: "$3.99" },
     ],
-    price: "$12 / month",
-    yearlyPrice: "$115 / year",
+    price: 50,
+    yearlyPrice: 480,
     mostPopular: true,
     accent: "purple",
   },
@@ -159,8 +179,8 @@ export const plans = [
       { label: "Extra Page", price: "$0.99 / page" },
       { label: "Extra 200 Products", price: "$4.99" },
     ],
-    price: "$25 / month",
-    yearlyPrice: "$115 / year",
+    price: 200,
+    yearlyPrice: 1920,
     accent: "amber",
     support: "Premium",
   },
@@ -180,12 +200,15 @@ export const plans = [
       { label: "Dedicated Success Manager", price: "Included" },
       { label: "Custom Integrations", price: "Request Quote" },
     ],
-    price: "$49 / month",
-    yearlyPrice: "$115 / year",
+    price: 800,
+    yearlyPrice: 7680,
     accent: "cyan",
     support: "Premium",
   },
 ];
+
+export const nairaSign = "₦";
+export const dollarSign = "$";
 
 export const userRoles = [
   "Marketer",

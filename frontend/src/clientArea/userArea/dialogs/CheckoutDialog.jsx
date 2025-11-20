@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { formatNumber } from "../../../utils/formats";
 
 export default function CheckoutDialog({
   open,
@@ -59,7 +60,7 @@ export default function CheckoutDialog({
     );
   }
 
-  const { plan, billing, addons = [] } = checkoutData;
+  const { plan, billing, finalPrice, addons = [] } = checkoutData;
 
   const handlePayment = async () => {
     setLoading(true);
@@ -144,7 +145,7 @@ export default function CheckoutDialog({
             <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 pt-2 border-t border-gray-300/40 dark:border-gray-700/40">
               Total:{" "}
               <span className="text-blue-600 dark:text-blue-400">
-                {plan.finalPrice}
+                {formatNumber(finalPrice)}
               </span>
             </p>
           </div>

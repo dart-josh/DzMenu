@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 import { mainConnection } from "../config/db.js";
 
+const planDetails = {
+  // id, name, limits, period, expDate
+};
+
 const userSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true, unique: true },

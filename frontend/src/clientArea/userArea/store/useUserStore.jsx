@@ -47,10 +47,8 @@ export const useUserStore = create((set, get) => ({
     return { success: res.success, message: res.message };
   },
 
-  verifyUser: () => {},
-
   //? PLANS
-  changePlan: async () => {},
+  updatePlan: async () => {},
 
   //? TRANSACTIONS
   updatePaymentHistory: () => {},

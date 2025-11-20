@@ -8,6 +8,7 @@ import UpgradePlanDialog from "../dialogs/UpgradePlanDialog";
 import CheckoutDialog from "../dialogs/CheckoutDialog";
 import ConfirmUpgradeDialog from "../dialogs/ConfirmUpgradeDialog";
 import ActivePlanCard from "../components/ActivePlanCard";
+import { formatNumber } from "../../../utils/formats.jsx";
 
 export default function PlansPage() {
   const { activePlan } = useUserStore();
@@ -87,6 +88,8 @@ export default function PlansPage() {
             setCheckoutOpen={setCheckoutOpen}
             index={index}
             key={index}
+            billing={billing}
+            setSelectedPlan={setSelectedPlan}
           />
         ))}
       </div>
@@ -126,7 +129,12 @@ export default function PlansPage() {
         checkoutData={selectedPlan}
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
-        onPayment={() => {}}
+        onPayment={(data) => {
+          console.log(data)
+          // update plan
+
+          // save transaction
+        }}
       />
     </div>
   );
@@ -134,7 +142,15 @@ export default function PlansPage() {
 
 /* ------------------------ COMPONENTS ------------------------- */
 
-const PlanTile = ({ plan, activePlan, getPrice, setCheckoutOpen, index }) => {
+const PlanTile = ({
+  plan,
+  activePlan,
+  getPrice,
+  setCheckoutOpen,
+  index,
+  billing,
+  setSelectedPlan,
+}) => {
   return (
     <motion.div
       key={plan.id}
@@ -202,11 +218,19 @@ const PlanTile = ({ plan, activePlan, getPrice, setCheckoutOpen, index }) => {
       {/* Price */}
       <div className="relative z-10 mt-auto">
         <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          {getPrice(plan)}
+          {formatNumber(getPrice(plan), {showSymbol: true})} /{" "}
+          {billing === "yearly" ? "year" : "month"}
         </p>
 
         <button
           onClick={() => {
+            const data = {
+              billing,
+              plan: plan,
+              finalPrice: getPrice(plan),
+              addons: {},
+            };
+            setSelectedPlan(data);
             setCheckoutOpen(true);
           }}
           disabled={activePlan === plan.id}

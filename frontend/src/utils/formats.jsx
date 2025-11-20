@@ -1,9 +1,19 @@
-export const formatNumber = (num, decimals = 0) => {
-  return Number(num).toLocaleString("en-US", {
+import { dollarSign } from "./globalVariables";
+
+export const formatNumber = (num, showSymbol = false, decimals = 0) => {
+  if (!num) return '';
+  const val = Number(num).toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
+
+  if (showSymbol) return `${dollarSign}${val}`;
+  else return val;
 };
+
+// export const formatAmount = (num) => {
+//   if (num < )
+// }
 
 export const formatOpenedSince = (createdAt) => {
   if (!createdAt) return "Opened date unknown";
@@ -31,11 +41,13 @@ export const formatReadableDate = (date) => {
 };
 
 export const getInitials = (value) => {
-  if (!value) return '';
+  if (!value) return "";
 
-  if (value.split(' ').length > 1) {
-    return `${value.split(' ')[0].substring(0,1)}${value.split(' ')[1].substring(0,1)}`
+  if (value.split(" ").length > 1) {
+    return `${value.split(" ")[0].substring(0, 1)}${value
+      .split(" ")[1]
+      .substring(0, 1)}`;
   } else {
-    return value.substring(0,2).toUpperCase();
+    return value.substring(0, 2).toUpperCase();
   }
-}
+};
