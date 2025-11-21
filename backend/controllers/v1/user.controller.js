@@ -108,6 +108,36 @@ export const startEmailVerification = async (req, res) => {
   }
 };
 
+export const updatePlan = async (req, res) => {
+  const { planDetails } = req.body;
+
+  if (!req.user?.userId) {
+    return res.status(400).json({ error: "User not found" });
+  }
+
+  if (!planDetails) {
+    return res.status(400).json({ error: "Invalid plan" });
+  }
+
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.planDetails = planDetails;
+    await user.save();
+
+    res.json({
+      message: "Plan updated",
+      user: cleanUserDetails(user._doc),
+    });
+  } catch (error) {
+    console.log("❌ Error in v1 user.controller updatePlan ", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 export const changeEmail = async (req, res) => {
   const { email, password, newEmail } = req.body;
 

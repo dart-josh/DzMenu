@@ -481,6 +481,27 @@ export const startEmailVerification = async () => {
   }
 };
 
+export const updatePlan = async (data) => {
+  try {
+    const response = await axios.post(
+      `${server_prefix}/user/updatePlan`,
+      data
+    );
+
+    return {
+      success: true,
+      message: response.data.message,
+      user: response.data.user,
+    };
+  } catch (error) {
+    console.log("Error in updatePlan function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
 //?------- AUTH ------------------
 
 // signup

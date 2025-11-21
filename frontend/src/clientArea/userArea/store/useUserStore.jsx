@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { editProfile, getAuthUser } from "../../../helpers/serverHelpers";
+import { editProfile, getAuthUser, updatePlan } from "../../../helpers/serverHelpers";
 
 export const useUserStore = create((set, get) => ({
   user: {},
@@ -48,7 +48,17 @@ export const useUserStore = create((set, get) => ({
   },
 
   //? PLANS
-  updatePlan: async () => {},
+  updatePlan: async (data) => {
+    const {updateUser} = get();
+    const res = await updatePlan(data);
+
+    if (res.success) {
+      const user = res.user;
+      updateUser(user);
+    }
+
+    return { success: res.success, message: res.message };
+  },
 
   //? TRANSACTIONS
   updatePaymentHistory: () => {},

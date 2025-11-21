@@ -9,9 +9,10 @@ import CheckoutDialog from "../dialogs/CheckoutDialog";
 import ConfirmUpgradeDialog from "../dialogs/ConfirmUpgradeDialog";
 import ActivePlanCard from "../components/ActivePlanCard";
 import { formatNumber } from "../../../utils/formats.jsx";
+import { getRenewalDate, replaceUnlimited } from "../../../utils/generalFns.jsx";
 
 export default function PlansPage() {
-  const { activePlan } = useUserStore();
+  const { activePlan, updatePlan, planDetails } = useUserStore();
 
   const [billing, setBilling] = useState("monthly");
 
@@ -127,11 +128,26 @@ export default function PlansPage() {
 
       <CheckoutDialog
         checkoutData={selectedPlan}
+        autoRenewalEnabled={planDetails?.autoRenewal || false}
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
-        onPayment={(data) => {
-          console.log(data)
+        onPayment={async (data) => {
+
           // update plan
+          const planDetails = {
+            id: data.plan.id,
+            name: data.plan.name,
+            limits: replaceUnlimited(data.plan.limits, -1),
+            addons: data.addons,
+            billing: data.billing,
+            renewalDate: getRenewalDate(new Date(), data.billing),
+            autoRenewal: data.autoRenewal,
+          };
+          const res = await updatePlan({planDetails});
+          if (res.success) {
+            setCheckoutOpen(false);
+          }
+          console.log(res);
 
           // save transaction
         }}
@@ -218,7 +234,7 @@ const PlanTile = ({
       {/* Price */}
       <div className="relative z-10 mt-auto">
         <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          {formatNumber(getPrice(plan), {showSymbol: true})} /{" "}
+          {formatNumber(getPrice(plan), { showSymbol: true })} /{" "}
           {billing === "yearly" ? "year" : "month"}
         </p>
 
@@ -330,3 +346,6 @@ function ComparisonRow({ label, values }) {
     </tr>
   );
 }
+
+// FNS
+

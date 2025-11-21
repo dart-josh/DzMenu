@@ -15,8 +15,10 @@ export default function CheckoutDialog({
   onClose,
   checkoutData, // { plan, billing, addons }
   onPayment,
+  autoRenewalEnabled = false,
 }) {
   const [loading, setLoading] = useState(false);
+  const [autoRenewal, setAutoRenewal] = useState(autoRenewalEnabled);
 
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
@@ -64,6 +66,7 @@ export default function CheckoutDialog({
 
   const handlePayment = async () => {
     setLoading(true);
+    checkoutData.autoRenewal = autoRenewal;
     await onPayment(checkoutData);
     setLoading(false);
   };

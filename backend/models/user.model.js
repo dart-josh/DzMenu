@@ -1,9 +1,32 @@
 import mongoose from "mongoose";
 import { mainConnection } from "../config/db.js";
 
-const planDetails = {
-  // id, name, limits, period, expDate
-};
+const planDetailsSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+
+  limits: {
+    stores: { type: Number, default: 0 },
+    pages: { type: Number, default: 0 },
+    products: { type: Number, default: 0 },
+  },
+
+  addons: {
+    stores: { type: Number, default: 0 },
+    pages: { type: Number, default: 0 },
+    products: { type: Number, default: 0 },
+  },
+
+  billing: {type: String},
+  renewalDate: { type: Date },
+  autoRenewal: { type: Boolean, default: false },
+});
+
+const planUsageSchema = new mongoose.Schema({
+    stores: { type: Number, default: 0 },
+    pages: { type: Number, default: 0 },
+    products: { type: Number, default: 0 },
+  });
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,8 +43,10 @@ const userSchema = new mongoose.Schema(
     userRole: { type: String },
     // contactNumber: { type: String },
 
-    planDetails: {type: Map},
-    paymentHistory: {type: Map},
+    planDetails: planDetailsSchema,
+    paymentHistory: { type: Map },
+
+    planUsage: planUsageSchema,
 
     lastLogin: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
