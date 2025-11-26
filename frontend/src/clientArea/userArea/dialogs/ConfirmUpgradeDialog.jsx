@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CreditCard, Loader2, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
+import { formatNumber } from "../../../utils/formats";
 
 export default function ConfirmUpgradeDialog({
   open,
@@ -58,12 +59,12 @@ export default function ConfirmUpgradeDialog({
           <div className="flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-blue-600" />
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Confirm Upgrade
+              Confirm Migration
             </h2>
           </div>
 
           <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-            Review your upgrade details before proceeding with payment.
+            Review your new plan details before proceeding with payment.
           </p>
 
           {/* Plan Summary */}
@@ -107,7 +108,7 @@ export default function ConfirmUpgradeDialog({
             <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 pt-2 border-t border-gray-300/40 dark:border-gray-700/40">
               Total:{" "}
               <span className="text-blue-600 dark:text-blue-400">
-                {finalPrice}
+                {formatNumber(finalPrice, true)}
               </span>
             </p>
           </div>

@@ -46,7 +46,10 @@ const userSchema = new mongoose.Schema(
     planDetails: planDetailsSchema,
     paymentHistory: { type: Map },
 
-    planUsage: planUsageSchema,
+    planUsage: {
+      type: planUsageSchema,
+      default: () => ({}),
+    },
 
     lastLogin: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },

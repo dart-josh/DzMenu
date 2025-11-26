@@ -75,9 +75,13 @@ export const useClientStore = create(
         };
 
         const updatedStores = deleteStore(stores, storeId);
-
         set({ stores: [...updatedStores] });
-        if (activeStore?.storeId == storeId) set({ activeStore: null });
+
+        const delayed = (fn, ms) => {
+          setTimeout(fn, ms);
+        };
+        if (activeStore?.storeId == storeId)
+          delayed(() => set({ activeStore: null }), 500);
       },
     }),
     {

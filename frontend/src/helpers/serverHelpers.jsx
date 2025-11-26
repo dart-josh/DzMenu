@@ -26,6 +26,7 @@ export const create_store = async (data) => {
       success: true,
       message: response.data.message,
       store: response.data.store,
+      user: response.data.user,
     };
   } catch (error) {
     console.log("Error in create_store function - ", error);
@@ -48,6 +49,7 @@ export const update_store = async (data) => {
       success: true,
       message: response.data.message,
       store: response.data.store,
+      user: response.data.user,
     };
   } catch (error) {
     console.log("Error in update_store function - ", error);
@@ -128,6 +130,7 @@ export const delete_store = async (storeId) => {
     return {
       success: true,
       message: response.data.message,
+      user: response.data.user,
     };
   } catch (error) {
     console.log("Error in delete_store function - ", error);

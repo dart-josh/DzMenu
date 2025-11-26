@@ -3,27 +3,52 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle } from "lucide-react";
 import { plans } from "../../../utils/globalVariables.jsx";
 import { useEffect, useState } from "react";
+import { formatNumber } from "../../../utils/formats.jsx";
 
 export default function UpgradePlanDialog({
   open,
   onClose,
   onUpgrade,
   currentPlan,
+  upgradePlanId,
+  initBilling,
 }) {
-  const [selected, setSelected] = useState(null);
-  const [billing, setBilling] = useState("monthly"); // NEW
-  const selectedPlan = plans.find((p) => p.id === selected);
+  const [selected, setSelected] = useState(upgradePlanId);
+  const [billing, setBilling] = useState(initBilling || "monthly"); // NEW
+  const [selectedPlan, setSelectedPlan] = useState(plans.find((p) => p.id === selected));
 
   // Calculate price based on billing cycle
   const getPlanPrice = (plan) => {
-    if (!plan) return null;
-    const base = parseFloat(plan.price.replace("$", ""));
-
-    // You can customize this discount logic:
-    return billing === "yearly" ? base * 12 * 0.8 : base; // yearly = 20% off
+    if (billing === "yearly" && plan.yearlyPrice) {
+      return plan.yearlyPrice;
+    }
+    return plan.price;
   };
 
-  const finalPrice = selectedPlan ? getPlanPrice(selectedPlan) : null;
+  const [finalPrice, setFinalPrice] = useState(selectedPlan ? getPlanPrice(selectedPlan) : null);
+
+  const isPlanLower = (id) => {
+    if (!id) return false;
+    
+    const planInd = plans.findIndex((p) => p.id == id);
+    const activePlanInd = plans.findIndex((p) => p.id == currentPlan);
+    if (planInd != -1) {
+      return planInd < activePlanInd;
+    } else return false;
+  }
+
+  useEffect(() => {
+    setSelected(upgradePlanId);
+    setSelectedPlan(plans.find((p) => p.id === upgradePlanId))
+    setBilling(initBilling);
+  }, [upgradePlanId, initBilling, open]);
+
+  useEffect(() => {
+    const sel = plans.find((p) => p.id === selected);
+    setSelectedPlan(sel)
+    setFinalPrice(sel ? getPlanPrice(sel) : null)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, billing])
 
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
@@ -37,7 +62,7 @@ export default function UpgradePlanDialog({
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-4"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-2 xs:px-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -46,11 +71,11 @@ export default function UpgradePlanDialog({
         <motion.div
           className="w-full max-w-md bg-white/70 dark:bg-gray-900/70
             backdrop-blur-xl rounded-2xl border border-white/30 dark:border-gray-700/50
-            shadow-2xl p-6 relative space-y-5"
+            shadow-2xl py-6 px-3 xs:px-6 relative space-y-5"
           initial={{ scale: 0.85, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.85, opacity: 0, y: 20 }}
-          transition={{ type: "spring", damping: 18 }}
+          // transition={{ type: "spring", damping: 18 }}
         >
           {/* Close Button */}
           <button
@@ -63,12 +88,12 @@ export default function UpgradePlanDialog({
 
           {/* Title */}
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Upgrade Your Plan
+            {isPlanLower(selected) ? 'Downgrade' : 'Upgrade'} Your Plan
           </h2>
           <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-            Select a plan to upgrade from your current:
+            Select a plan to migrate from your current:
             <span className="font-semibold ml-1 text-blue-600 dark:text-blue-400">
-              {currentPlan}
+              {plans.find((p)=>p.id==currentPlan)?.name||currentPlan}
             </span>
           </p>
 
@@ -144,12 +169,8 @@ export default function UpgradePlanDialog({
                   {/* Price Display */}
                   <p className="mt-2 text-gray-900 dark:text-gray-100 font-bold text-lg">
                     {billing === "monthly"
-                      ? plan.price
-                      : `$${(
-                          parseFloat(plan.price.replace("$", "")) *
-                          12 *
-                          0.8
-                        ).toFixed(0)}/yr`}
+                      ? formatNumber(plan.price, true)
+                      : formatNumber(plan.yearlyPrice, true)}
                   </p>
 
                   {plan.mostPopular && (
@@ -181,9 +202,9 @@ export default function UpgradePlanDialog({
             }`}
           >
             {selectedPlan
-              ? `Upgrade to ${
+              ? `${isPlanLower(selected) ? 'Downgrade' : 'Upgrade'} to ${
                   selectedPlan.name
-                } (${billing}) — $${finalPrice?.toFixed(0)}`
+                } (${billing}) — ${formatNumber(finalPrice, true)}`
               : "Select a plan to continue"}
           </button>
         </motion.div>

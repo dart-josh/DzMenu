@@ -191,8 +191,8 @@ export const plans = [
     tagline:
       "Unlimited scalability. Built for franchises, chains, and large brands.",
     limits: {
-      stores: "Unlimited",
-      pages: "Unlimited",
+      stores: 20,
+      pages: 50,
       products: "Unlimited",
     },
     addons: [
@@ -205,6 +205,12 @@ export const plans = [
     accent: "cyan",
     support: "Premium",
   },
+];
+
+export const addonsList = [
+  { id: 'stores', label: "Extra Store", price: 10, yearlyPrice: 96 },
+  { id: 'pages', label: "Extra Page", price: 5, yearlyPrice: 48 },
+  { id: 'products', label: "Extra 200 Products", price: 20, yearlyPrice: 192 },
 ];
 
 export const nairaSign = "₦";

@@ -9,10 +9,13 @@ import CheckoutDialog from "../dialogs/CheckoutDialog";
 import ConfirmUpgradeDialog from "../dialogs/ConfirmUpgradeDialog";
 import ActivePlanCard from "../components/ActivePlanCard";
 import { formatNumber } from "../../../utils/formats.jsx";
-import { getRenewalDate, replaceUnlimited } from "../../../utils/generalFns.jsx";
+import {
+  getRenewalDate,
+  replaceUnlimited,
+} from "../../../utils/generalFns.jsx";
 
 export default function PlansPage() {
-  const { activePlan, updatePlan, planDetails } = useUserStore();
+  const { activePlan, updatePlan, planDetails, planActive } = useUserStore();
 
   const [billing, setBilling] = useState("monthly");
 
@@ -28,6 +31,17 @@ export default function PlansPage() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [confirmUpgradeOpen, setConfirmUpgradeOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [upgradePlanId, setUpgradePlanId] = useState(null);
+
+  const isPlanLower = (id) => {
+    if (!id) return false;
+    
+    const planInd = plans.findIndex((p) => p.id == id);
+    const activePlanInd = plans.findIndex((p) => p.id == activePlan);
+    if (planInd != -1) {
+      return planInd < activePlanInd;
+    } else return false;
+  }
 
   return (
     <div className="min-h-screen w-full bg-gray-100 dark:bg-gray-900 flex flex-col items-center px-2 sm:px-4 py-12">
@@ -79,6 +93,7 @@ export default function PlansPage() {
         <ActivePlanCard
           upgradeFn={() => {
             setUpgradeOpen(true);
+            setUpgradePlanId(null);
           }}
         />
         {plans.map((plan, index) => (
@@ -91,6 +106,11 @@ export default function PlansPage() {
             key={index}
             billing={billing}
             setSelectedPlan={setSelectedPlan}
+            planActive={planActive}
+            setUpgradeOpen={setUpgradeOpen}
+            isPlanLower={isPlanLower}
+            setUpgradePlanId={setUpgradePlanId}
+            planDetails={planDetails}
           />
         ))}
       </div>
@@ -100,14 +120,16 @@ export default function PlansPage() {
 
       <UpgradePlanDialog
         open={upgradeOpen}
-        currentPlan={"Basic"}
+        currentPlan={activePlan}
         onClose={() => setUpgradeOpen(false)}
+        upgradePlanId={upgradePlanId}
+        initBilling={billing}
         onUpgrade={(plan) => {
           const data = {
             billing: plan.billingCycle,
             plan: plan.plan,
             finalPrice: plan.finalPrice,
-            addons: {},
+            addons: planDetails?.addons || {},
           };
           setUpgradeOpen(false);
           setSelectedPlan(data);
@@ -132,7 +154,6 @@ export default function PlansPage() {
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
         onPayment={async (data) => {
-
           // update plan
           const planDetails = {
             id: data.plan.id,
@@ -143,7 +164,7 @@ export default function PlansPage() {
             renewalDate: getRenewalDate(new Date(), data.billing),
             autoRenewal: data.autoRenewal,
           };
-          const res = await updatePlan({planDetails});
+          const res = await updatePlan({ planDetails });
           if (res.success) {
             setCheckoutOpen(false);
           }
@@ -166,6 +187,11 @@ const PlanTile = ({
   index,
   billing,
   setSelectedPlan,
+  planActive,
+  setUpgradeOpen,
+  isPlanLower,
+  setUpgradePlanId,
+  planDetails,
 }) => {
   return (
     <motion.div
@@ -240,24 +266,34 @@ const PlanTile = ({
 
         <button
           onClick={() => {
-            const data = {
-              billing,
-              plan: plan,
-              finalPrice: getPrice(plan),
-              addons: {},
-            };
-            setSelectedPlan(data);
-            setCheckoutOpen(true);
+            if (planActive) {
+              setUpgradePlanId(plan.id)
+              setUpgradeOpen(true);
+            } else {
+              console.log(planDetails?.addons)
+              const data = {
+                billing,
+                plan: plan,
+                finalPrice: getPrice(plan),
+                addons: planDetails?.addons || {},
+              };
+              setSelectedPlan(data);
+              setCheckoutOpen(true);
+            }
           }}
-          disabled={activePlan === plan.id}
+          disabled={activePlan === plan.id && planActive}
           className={`w-full py-3 rounded-xl ${
-            activePlan === plan.id
+            activePlan === plan.id && planActive
               ? "bg-gray-700/60 dark:bg-gray-600 cursor-not-allowed"
               : `bg-${plan.accent}-600 hover:bg-${plan.accent}-700 cursor-pointer`
           }  
                 text-white font-semibold transition-all shadow`}
         >
-          {activePlan === plan.id ? "Current Plan" : "Get Started"}
+          {activePlan === plan.id && planActive
+            ? "Current Plan"
+            : planActive
+            ? isPlanLower(plan.id) ? "Downgrade Plan" : "Upgrade Plan"
+            : "Get Started"}
         </button>
       </div>
     </motion.div>
@@ -348,4 +384,3 @@ function ComparisonRow({ label, values }) {
 }
 
 // FNS
-

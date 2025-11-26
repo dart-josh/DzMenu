@@ -1,13 +1,19 @@
 import { create } from "zustand";
-import { editProfile, getAuthUser, updatePlan } from "../../../helpers/serverHelpers";
+import {
+  editProfile,
+  getAuthUser,
+  updatePlan,
+} from "../../../helpers/serverHelpers";
 
 export const useUserStore = create((set, get) => ({
   user: {},
   isVerified: false,
 
   userDetails: {},
-  planDetails: {},
-  activePlan: "pro",
+  planDetails: null,
+  activePlan: "",
+  planActive: false,
+  planUsage: {},
 
   paymentHistory: [],
   activeTransactions: [],
@@ -17,15 +23,19 @@ export const useUserStore = create((set, get) => ({
       user,
       isVerified: user?.isVerified,
       userDetails: {
-        userId: user?.userId,
-        fullname: user?.fullname,
-        userRole: user?.userRole,
-        email: user?.email,
+        userId: user?.userId || "",
+        fullname: user?.fullname || "",
+        userRole: user?.userRole || "",
+        email: user?.email || "",
       }, // userId, fullname, userRole, email
-      planDetails: user?.planDetails, // id, name, limits, period, expDate
-      activePlan: user?.planDetails?.id || "",
+      planDetails: user?.planDetails || null, // id, name, limits, period, expDate
+      activePlan: isPlanActive(user?.planDetails?.renewalDate)
+        ? user?.planDetails?.id || ""
+        : "",
+      planUsage: user?.planUsage || {},
       paymentHistory: user?.paymentHistory, // id, title, type, date, amount, discount, status,
       activeTransactions: user?.activeTransactions,
+      planActive: isPlanActive(user?.planDetails?.renewalDate),
     });
   },
 
@@ -49,7 +59,7 @@ export const useUserStore = create((set, get) => ({
 
   //? PLANS
   updatePlan: async (data) => {
-    const {updateUser} = get();
+    const { updateUser } = get();
     const res = await updatePlan(data);
 
     if (res.success) {
@@ -67,3 +77,13 @@ export const useUserStore = create((set, get) => ({
 
   //?
 }));
+
+
+
+const isPlanActive = (date) => {
+  if (!date) return false;
+  const now = new Date();
+  const target = new Date(date);
+
+  return target > now;
+};

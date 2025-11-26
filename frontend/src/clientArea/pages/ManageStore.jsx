@@ -43,6 +43,7 @@ import ManageProductDialog from "../dialogs/ManageProduct";
 import { pageTypes } from "../../utils/globalVariables.jsx";
 import { StoreNotFoundPage } from "../components/StoreNotFoundPage";
 import { ManageStoreShimmer } from "../shimmers/ManageStoreShimmer";
+import { useUserStore } from "../userArea/store/useUserStore.jsx";
 
 const ManageStore = () => {
   const { storeId } = useParams();
@@ -446,6 +447,7 @@ const StoreSettings = ({ store }) => {
 // 🔴 Danger Zone Section
 const DeleteZone = ({ storeId }) => {
   const navigate = useNavigate();
+  const {updateUser} = useUserStore();
   const { deleteStore } = useClientStore();
   const { setConfirmDetails } = useGeneralStore();
 
@@ -479,6 +481,7 @@ const DeleteZone = ({ storeId }) => {
         duration: 4000,
       });
       deleteStore(storeId);
+      if (res.user) updateUser(res.user);
       navigate("/client/store");
     } else {
       notify({

@@ -1,6 +1,7 @@
 import bcryptjs from "bcryptjs";
 import User from "../../models/user.model.js";
 import DeletedUser from "../../models/deleted_user.model.js";
+import mongoose from "mongoose";
 
 export const createProfile = async (req, res) => {
   const { fullname, userRole } = req.body;
@@ -304,6 +305,39 @@ export const deleteAccount = async (req, res) => {
 };
 
 // UTILS
+
+export const updatePlanUsage = async (userId, field, amount) => {
+  if (!mongoose.isValidObjectId(userId)) {
+    throw new Error("Invalid userId");
+  }
+
+  if (!["stores", "pages", "products"].includes(field)) {
+    throw new Error("Invalid plan usage field");
+  }
+
+  try {
+    const planUsage = await User.findByIdAndUpdate(
+      userId,
+      {
+        $inc: { [`planUsage.${field}`]: amount },
+      },
+      { new: true }
+    );
+
+    return planUsage;
+  } catch (error) {
+    console.log("Error in v1 user.controller updatePlanUsage: ", error);
+    return null;
+  }
+};
+
+export const isPlanActive = (date) => {
+  if (!date) return false;
+  const now = new Date();
+  const target = new Date(date);
+
+  return target > now;
+};
 
 export const cleanUserDetails = (user) => {
   user.password = undefined;

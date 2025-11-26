@@ -1,6 +1,7 @@
 import cloudinary, { uploadToCloudinary } from "../../lib/cloudinary.js";
 import { Store } from "../../models/store.model.js";
 import { getTenantConnection } from "../../utils/tenantManager.js";
+import { cleanUserDetails, isPlanActive, updatePlanUsage } from "./user.controller.js";
 
 // create store
 export const create_store = async (req, res) => {
@@ -9,6 +10,18 @@ export const create_store = async (req, res) => {
     const dbName = `store_${storeId}`;
 
     const user = req.user;
+
+    if (!user) return res.status(400).json({ error: "User invalid" });
+
+    if (!isPlanActive(user.planDetails?.renewalDate)) return res.status(400).json({ error: "No active plan" });
+
+    if (
+      user.planUsage?.stores >=
+      (user.planDetails?.limits.stores || 0) +
+        (user.planDetails?.addons?.stores || 0)
+    )
+      return res.status(400).json({ error: "Store limit reached" });
+
     if (!storeId || !storeName)
       return res.status(400).json({ error: "Store invalid" });
 
@@ -36,10 +49,16 @@ export const create_store = async (req, res) => {
       storeImage,
     });
 
+    const newUser = await updatePlanUsage(user?._id, "stores", 1);
+
     // Initialize DB (optional)
     const conn = await getTenantConnection(dbName);
 
-    res.json({ message: "Store created", store });
+    res.json({
+      message: "Store created",
+      store,
+      user: cleanUserDetails(newUser._doc),
+    });
   } catch (error) {
     console.error("❌ Error v1 store.controller create_store:", error);
     res.status(500).json({ error: "Server error" });
@@ -127,8 +146,11 @@ export const get_store = async (req, res) => {
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
     const user = req.user;
+    if (!user) return res.status(404).json({ error: "User Invalid" });
 
-    const store = await Store.findOne({ $or: [{ storeId }] }).select("-dbName"); //, { user }
+    const store = await Store.findOne({ $and: [{ storeId }, { user }] }).select(
+      "-dbName"
+    ); //, { user }
     if (!store) return res.status(404).json({ error: "Store not found" });
 
     res.json(store);
@@ -142,10 +164,11 @@ export const get_store = async (req, res) => {
 export const get_stores = async (req, res) => {
   try {
     const user = req.user;
+    if (!user) return null;
 
-    const store = await Store.find({ user }).select("-dbName"); // { user }
+    const stores = await Store.find({ user }).select("-dbName"); // { user }
 
-    res.json(store);
+    res.json(stores);
   } catch (err) {
     console.error("❌ Error in v1 store.controller get_stores:", err);
     res.status(500).json({ error: "Server error" });
@@ -156,10 +179,13 @@ export const get_stores = async (req, res) => {
 export const delete_store = async (req, res) => {
   try {
     const { storeId } = req.params;
+    const user = req.user;
+
+    if (!user) return res.status(400).json({ error: "Invalid user" });
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
-    const oldStore = await Store.findOne({ storeId });
+    const oldStore = await Store.findOne({ storeId, user });
     if (!oldStore) return res.status(404).json({ error: "Store not found" });
 
     if (oldStore.storeImage) {
@@ -171,7 +197,11 @@ export const delete_store = async (req, res) => {
     if (result.deletedCount === 0)
       return res.status(404).json({ error: "Store not found" });
 
-    return res.status(200).json({ message: "Store deleted" });
+    const newUser = await updatePlanUsage(user?._id, "stores", -1);
+
+    return res
+      .status(200)
+      .json({ message: "Store deleted", user: cleanUserDetails(newUser._doc) });
   } catch (err) {
     console.error("❌ Error in v1 store.controller delete_store:", err);
     res.status(500).json({ error: "Server error" });

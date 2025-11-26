@@ -11,6 +11,8 @@ import { useState } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import { logout, signup } from "../../../helpers/serverHelpers";
+import toast from "react-hot-toast";
 
 export default function UserMenuDropdown() {
   const [open, setOpen] = useState(false);
@@ -51,6 +53,15 @@ export default function UserMenuDropdown() {
       href: "/client/support",
     },
   ];
+
+  const logoutFn = async () => {
+    // const res = await signup({email: 'jana@gmail.com', password: '123456'});
+    // if (res.success) {
+    //   toast.success(res.message, {id: 'success1'});
+    // } else {
+    //   toast.error(res.message, {id: "error1"});
+    // }
+  }
 
   return (
     <div className="relative">
@@ -129,7 +140,7 @@ export default function UserMenuDropdown() {
               {/* Footer / Logout */}
               <div className="border-t border-gray-100 p-3">
                 <button
-                  onClick={() => alert("Logging out...")}
+                  onClick={logoutFn}
                   className="flex items-center justify-center w-full gap-2 text-red-500 hover:bg-red-50 font-semibold text-sm py-2 rounded-xl transition"
                 >
                   <LogOut className="w-4 h-4" />

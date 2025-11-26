@@ -8,12 +8,14 @@ import toast from "react-hot-toast";
 import ManageStoreDialog from "../dialogs/ManageStore";
 import { notify } from "../../store/useNotificationStore";
 import { useSearchParams } from "react-router-dom";
+import { useUserStore } from "../userArea/store/useUserStore";
 
 const StoreList = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("x");
 
   const { updateStore, getMyStores } = useClientStore();
+  const {updateUser} = useUserStore()
 
   const [open, setOpen] = useState(false);
 
@@ -44,6 +46,7 @@ const StoreList = () => {
         duration: 4000,
       });
       updateStore(cat.store);
+      if (cat.user) updateUser(cat.user)
     }
     return cat.success;
   };

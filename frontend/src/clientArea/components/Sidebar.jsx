@@ -59,7 +59,6 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen, showSidebar }) => {
         ? { ...item } // modify the object here
         : store
     );
-
     setSideItems(updatedList);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stores, showSidebar]);
@@ -131,7 +130,6 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen, showSidebar }) => {
 
     fetchProducts(activeStore);
     fetchPages(activeStore);
-
     setSideItems(updatedList);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,7 +141,11 @@ const Sidebar = ({ setIsSidebarOpen, isSidebarOpen, showSidebar }) => {
   }, [getMyStores]);
 
   return (
-    <div className={`${!showSidebar ? 'hidden' : 'flex'} flex-col h-full w-[250px] md:w-[210px] lg:w-[250px] pt-4 pl-2 md:pl-3 lg:pl-4`}>
+    <div
+      className={`${
+        !showSidebar ? "hidden" : "flex"
+      } flex-col h-full w-[250px] md:w-[210px] lg:w-[250px] pt-4 pl-2 md:pl-3 lg:pl-4`}
+    >
       <div onClick={closeSidebar} className="mb-6">
         <LogoTileLarge />
       </div>
