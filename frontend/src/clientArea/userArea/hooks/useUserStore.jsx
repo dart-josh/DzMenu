@@ -2,7 +2,7 @@ import { create } from "zustand";
 import {
   editProfile,
   getAuthUser,
-  updatePlan,
+  updatePlanAutoRenewal,
 } from "../../../helpers/serverHelpers";
 
 export const useUserStore = create((set, get) => ({
@@ -16,9 +16,12 @@ export const useUserStore = create((set, get) => ({
   planUsage: {},
 
   paymentHistory: [],
-  activeTransactions: [],
+  pendingPayments: [],
 
   updateUser: (user) => {
+    const paymentHistory = sortByNewest(user?.paymentHistory || []);
+    const pendingPayments = sortByNewest(user?.pendingPayments || []);
+
     set({
       user,
       isVerified: user?.isVerified,
@@ -33,8 +36,8 @@ export const useUserStore = create((set, get) => ({
         ? user?.planDetails?.id || ""
         : "",
       planUsage: user?.planUsage || {},
-      paymentHistory: user?.paymentHistory, // id, title, type, date, amount, discount, status,
-      activeTransactions: user?.activeTransactions,
+      paymentHistory,
+      pendingPayments,
       planActive: isPlanActive(user?.planDetails?.renewalDate),
     });
   },
@@ -58,9 +61,13 @@ export const useUserStore = create((set, get) => ({
   },
 
   //? PLANS
-  updatePlan: async (data) => {
-    const { updateUser } = get();
-    const res = await updatePlan(data);
+
+  updatePlanAutoRenewal: async () => {
+    const { planDetails, updateUser } = get();
+    const new_value = planDetails?.autoRenewal || false;
+    const res = await updatePlanAutoRenewal({
+      value: !new_value,
+    });
 
     if (res.success) {
       const user = res.user;
@@ -78,8 +85,6 @@ export const useUserStore = create((set, get) => ({
   //?
 }));
 
-
-
 const isPlanActive = (date) => {
   if (!date) return false;
   const now = new Date();
@@ -87,3 +92,6 @@ const isPlanActive = (date) => {
 
   return target > now;
 };
+
+const sortByNewest = (arr) =>
+  arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));

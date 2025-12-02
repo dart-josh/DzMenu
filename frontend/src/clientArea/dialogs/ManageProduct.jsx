@@ -36,6 +36,7 @@ import {
 import { generateProductId } from "../../utils/generators";
 import { notify } from "../../store/useNotificationStore";
 import { useGeneralStore } from "../../store/useGeneralStore";
+import { useUserStore } from "../userArea/hooks/useUserStore";
 
 const ManageProductDialog = ({
   open,
@@ -44,6 +45,7 @@ const ManageProductDialog = ({
   storeId,
   category,
 }) => {
+  const { updateUser } = useUserStore();
   const { existingIds, categories, updateProduct } = useClientProductStore();
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -128,6 +130,7 @@ const ManageProductDialog = ({
         duration: 3000,
       });
       updateProduct(cat.product);
+      if (cat.user) updateUser(cat.user);
     }
     return cat.success;
   };
@@ -432,6 +435,7 @@ const DeleteProductArea = ({
   setIsLoading,
   onClose,
 }) => {
+  const { updateUser } = useUserStore();
   const { setConfirmDetails } = useGeneralStore();
   const { deleteProduct } = useClientProductStore();
 
@@ -463,6 +467,7 @@ const DeleteProductArea = ({
         duration: 4000,
       });
       deleteProduct(product?.productId);
+      if (res.user) updateUser(res.user);
       onClose?.();
     } else {
       notify({

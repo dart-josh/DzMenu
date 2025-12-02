@@ -1,13 +1,23 @@
 import { pageSchema } from "../../models/page.schema.js";
 import { productSchema } from "../../models/product.schema.js";
 import { Store } from "../../models/store.model.js";
-import { getTenantModel } from "../../utils/tenantManager.js";
+import { getTenantModel } from "../../utils/db.js";
+import {
+  cleanUserDetails,
+  planLimitCheck,
+  updatePlanUsage,
+} from "./user.controller.js";
 
 // create page
 export const create_page = async (req, res) => {
   try {
     const { storeId } = req.params;
     const { pageDetails } = req.body;
+
+    const user = req.user;
+    const limitCheck = planLimitCheck(user, "pages");
+    if (!limitCheck.success)
+      return res.status(400).json({ error: limitCheck.message });
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
@@ -27,7 +37,14 @@ export const create_page = async (req, res) => {
     // create page
     const page = await Page.create({ ...pageDetails });
 
-    res.status(201).json({ message: "Page created", page });
+    const newUser = await updatePlanUsage(user?._id, "pages", 1);
+
+    const cleanedUser = await cleanUserDetails(newUser);
+    res.status(201).json({
+      message: "Page created",
+      page,
+      user: cleanedUser,
+    });
   } catch (err) {
     console.error("❌ Error in v1 page.controller create_page:", err);
     res.status(500).json({ error: "Server error" });
@@ -138,6 +155,9 @@ export const fetch_page = async (req, res) => {
 export const delete_page = async (req, res) => {
   try {
     const { storeId, pageId } = req.params;
+    const user = req.user;
+
+    if (!user) return res.status(400).json({ error: "Invalid user" });
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
@@ -153,7 +173,10 @@ export const delete_page = async (req, res) => {
     if (result.deletedCount === 0)
       return res.status(404).json({ error: "Page not found" });
 
-    return res.status(200).json({ message: "Page deleted" });
+    const newUser = await updatePlanUsage(user?._id, "pages", -1);
+
+    const cleanedUser = await cleanUserDetails(newUser);
+    return res.status(200).json({ message: "Page deleted", user: cleanedUser });
   } catch (err) {
     console.error("❌ Error in v1 page.controller delete_page:", err);
     res.status(500).json({ error: "Server error" });

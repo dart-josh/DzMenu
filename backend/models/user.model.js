@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { mainConnection } from "../config/db.js";
+// import { mainConnection } from "../config/db.js";
+import { getMainModel } from "../utils/db.js";
 
 const planDetailsSchema = new mongoose.Schema({
   id: { type: String, required: true },
@@ -17,16 +18,16 @@ const planDetailsSchema = new mongoose.Schema({
     products: { type: Number, default: 0 },
   },
 
-  billing: {type: String},
+  billing: { type: String },
   renewalDate: { type: Date },
   autoRenewal: { type: Boolean, default: false },
 });
 
 const planUsageSchema = new mongoose.Schema({
-    stores: { type: Number, default: 0 },
-    pages: { type: Number, default: 0 },
-    products: { type: Number, default: 0 },
-  });
+  stores: { type: Number, default: 0 },
+  pages: { type: Number, default: 0 },
+  products: { type: Number, default: 0 },
+});
 
 const userSchema = new mongoose.Schema(
   {
@@ -44,7 +45,12 @@ const userSchema = new mongoose.Schema(
     // contactNumber: { type: String },
 
     planDetails: planDetailsSchema,
-    paymentHistory: { type: Map },
+    paymentHistory: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },
+    ],
+    pendingPayments: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },
+    ],
 
     planUsage: {
       type: planUsageSchema,
@@ -63,6 +69,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const User = mainConnection.model("User", userSchema);
+// const User = mainConnection.model("User", userSchema);
+const User = await getMainModel("User", userSchema);
 
 export default User;

@@ -8,6 +8,7 @@ import {
   remove_category,
   update_product,
 } from "../../controllers/v1/product.controller.js";
+import { userProtect } from "../../middleware/auth.middleware.js";
 
 import multer from "multer";
 
@@ -18,11 +19,21 @@ const storage = multer.memoryStorage({});
 const upload = multer({ storage });
 
 //! protected by auth & owner
-router.post("/create/:storeId", upload.single("image"), create_product);
-router.post("/update/:storeId", upload.single("image"), update_product);
+router.post(
+  "/create/:storeId",
+  userProtect,
+  upload.single("image"),
+  create_product
+);
+router.post(
+  "/update/:storeId",
+  userProtect,
+  upload.single("image"),
+  update_product
+);
 router.get("/get_products/:storeId", get_products);
 
-router.delete("/delete/:storeId/:productId", delete_product);
+router.delete("/delete/:storeId/:productId", userProtect, delete_product);
 
 router.post("/add_category/:storeId", add_category);
 router.get("/get_categories/:storeId", get_categories);

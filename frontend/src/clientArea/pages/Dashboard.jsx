@@ -254,8 +254,6 @@
 
 // export default Dashboard;
 
-
-
 import {
   Store,
   LayoutGrid,
@@ -274,27 +272,29 @@ import {
   useClientStore,
 } from "../../store/useClientStore";
 import { Link } from "react-router-dom";
+import { useUserStore } from "../userArea/hooks/useUserStore";
 
 const Dashboard = () => {
+  const { planUsage } = useUserStore();
   const { stores, activeStore } = useClientStore();
   const { pages } = useClientPageStore();
   const { products } = useClientProductStore();
 
   const [stats, setStats] = useState({
-    stores: stores.length,
-    pages: pages.length,
-    products: products.length,
+    stores: planUsage?.stores || 0,
+    pages: planUsage?.pages || 0,
+    products: planUsage?.products || 0,
     views: 0,
   });
 
   useEffect(() => {
     setStats({
-      stores: stores.length,
-      pages: pages.length,
-      products: products.length,
+      stores: planUsage?.stores || 0,
+      pages: planUsage?.pages || 0,
+      products: planUsage?.products || 0,
       views: 0,
     });
-  }, [stores, pages, products]);
+  }, [stores, planUsage]);
 
   return (
     <div className="min-h-screen text-gray-900 p-6 md:p-10">

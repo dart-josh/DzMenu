@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/v1/cron/checkPayments?key=CRONJOB4401SECRET",
+      "schedule": "0 22 * * *"
+    }
+  ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+}

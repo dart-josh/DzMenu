@@ -26,3 +26,5 @@ frontend/public/products
 *.sw?
 
 .vercel
+
+.vercel

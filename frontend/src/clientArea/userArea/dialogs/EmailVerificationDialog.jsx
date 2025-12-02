@@ -5,7 +5,7 @@ import {
   verifyEmail,
 } from "../../../helpers/serverHelpers";
 import toast from "react-hot-toast";
-import { useUserStore } from "../store/useUserStore";
+import { useUserStore } from "../hooks/useUserStore";
 import { useEffect } from "react";
 
 const EmailVerificationDialog = ({ isOpen, onClose, email }) => {

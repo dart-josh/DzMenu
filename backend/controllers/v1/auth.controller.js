@@ -1,9 +1,8 @@
 import bcryptjs from "bcryptjs";
 import crypto from "crypto";
+import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 import User from "../../models/user.model.js";
-import { generate_userId } from "../../utils/serverUtils.js";
-import { redis } from "../../lib/redis.js";
 import { cleanUserDetails } from "./user.controller.js";
 
 export const signup = async (req, res) => {
@@ -48,12 +47,10 @@ export const signup = async (req, res) => {
 
     //! await sendVerificationEmail(user.email, verificationToken);
 
+    const cleanedUser = await cleanUserDetails(user);
     res.status(201).json({
       message: "Account created",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
+      user: cleanedUser,
     });
   } catch (error) {
     console.log("❌ Error in v1 auth.controller signup: ", error);
@@ -82,9 +79,10 @@ export const verifyEmail = async (req, res) => {
 
     //! await sendWelcomeEmail(user.email, user.name);
 
+    const cleanedUser = await cleanUserDetails(user);
     res.status(200).json({
       message: "Email verified",
-      user: cleanUserDetails(user._doc),
+      user: cleanedUser,
     });
   } catch (error) {
     console.log("❌ Error in v1 auth.controller verifyEmail ", error);
@@ -112,12 +110,10 @@ export const login = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
+    const cleanedUser = await cleanUserDetails(user);
     res.status(200).json({
       message: "User Authenticated",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
+      user: cleanedUser,
     });
   } catch (error) {
     console.log("❌ Error in v1 auth.controller login ", error);
@@ -127,7 +123,8 @@ export const login = async (req, res) => {
 
 export const getAuthUser = async (req, res) => {
   try {
-    const user = cleanUserDetails(req.user._doc);
+    const cleanedUser = await cleanUserDetails(req.user);
+    const user = cleanedUser;
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -268,16 +265,6 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
-// store refresh token in redis
-const storeRefreshToken = async (userId, refreshToken) => {
-  await redis.set(
-    `refresh_token:${userId}`,
-    refreshToken,
-    "EX",
-    7 * 24 * 60 * 60
-  ); //7d
-};
-
 // set cookies
 const setCookies = (res, accessToken, refreshToken) => {
   res.cookie("accessToken", accessToken, {
@@ -293,4 +280,9 @@ const setCookies = (res, accessToken, refreshToken) => {
     sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
+};
+
+// generate userId
+const generate_userId = (num = 10) => {
+  return "dz" + nanoid(num);
 };

@@ -54,11 +54,13 @@ import { FullPageLoader } from "../components/FullPageLoader";
 import { PageNotFound } from "../components/PageNotFound";
 import { NoActiveStore } from "../components/NoActiveStore";
 import { AccessDeniedPage } from "../components/AccessDeniedPage";
+import { useUserStore } from "../userArea/hooks/useUserStore.jsx";
 
 const ManagePage = () => {
   const navigate = useNavigate();
   const { storeId, pageId } = useParams();
 
+  const { updateUser } = useUserStore();
   const { activeStore } = useClientStore();
   const { existingIds, pages, getPage, updatePage } = useClientPageStore();
   const { categories, products } = useClientProductStore();
@@ -329,6 +331,7 @@ const ManagePage = () => {
         duration: 3000,
       });
       updatePage(cat.page);
+      if (cat.user) updateUser(cat.user);
     }
     return cat.success;
   };
@@ -1146,6 +1149,7 @@ const Visibility = ({ storeId, page, canEdit }) => {
 
 const DeletePageButton = ({ pageId, storeId }) => {
   const navigate = useNavigate();
+  const { updateUser } = useUserStore();
   const { setConfirmDetails } = useGeneralStore();
   const { deletePage } = useClientPageStore();
 
@@ -1180,6 +1184,7 @@ const DeletePageButton = ({ pageId, storeId }) => {
         key: "success1",
       });
       deletePage(pageId);
+      if (res.user) updateUser(res.user);
       navigate(`/client/s/${storeId || ""}/p`);
     } else {
       notify({

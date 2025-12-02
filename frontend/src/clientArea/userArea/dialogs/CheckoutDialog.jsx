@@ -8,20 +8,27 @@ import {
   Sparkles,
   RefreshCw,
   CalendarDays,
+  Loader,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { formatNumber } from "../../../utils/formats";
-import { useUserStore } from "../store/useUserStore";
+import { useUserStore } from "../hooks/useUserStore";
 import { notify } from "../../../store/useNotificationStore";
 import AddonsDialog from "./AddonsDialog";
 import { addonsList } from "../../../utils/globalVariables";
+import { getRenewalDate, replaceUnlimited } from "../../../utils/generalFns";
+import { completePayment, startPayment } from "../../../helpers/serverHelpers";
+import PaystackResumePayment from "../components/PaystackResumePayment";
+import PaymentWaitingDialog from "./PaymentWaitingDialog";
 
 export default function CheckoutDialog({
   open,
   onClose,
   checkoutData, // { plan, billing, addons }
-  onPayment,
+  onPay,
+  onFail,
   autoRenewalEnabled,
+  transactionType,
 }) {
   const { plan, billing, finalPrice, addons } = checkoutData || {};
 
@@ -85,15 +92,6 @@ export default function CheckoutDialog({
     if (selectedAddons) getAddonsDetails(selectedAddons);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAddons, checkoutData]);
-
-  useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
-
-    return () => (document.body.style.overflow = "");
-  }, [open]);
-
-  if (!open) return null;
 
   const checkPlanLimit = (currentPlan, newPlan) => {
     if (currentPlan.stores > newPlan.stores && newPlan.stores != -1)
@@ -162,6 +160,18 @@ export default function CheckoutDialog({
     return res.success;
   };
 
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [paymentPayload, setPaymentPayload] = useState(null);
+
+  useEffect(() => {
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+
+    return () => (document.body.style.overflow = "");
+  }, [open]);
+
+  if (!open) return null;
+
   // ❗Handle missing plan data gracefully
   if (!checkoutData || !checkoutData.plan) {
     return (
@@ -195,18 +205,41 @@ export default function CheckoutDialog({
     );
   }
 
-  const handlePayment = async () => {
+  const payNow = async () => {
     const isPlanValid = checkPlan();
     if (!isPlanValid) return;
 
-    checkoutData.addonPrice = addonPrice;
-    checkoutData.totalPrice = checkoutPrice;
-    checkoutData.addons = selectedAddons;
-    checkoutData.autoRenewal = autoRenewal;
+    const planDetails = {
+      id: checkoutData.plan.id,
+      name: checkoutData.plan.name,
+      limits: replaceUnlimited(checkoutData.plan.limits, -1),
+      addons: selectedAddons,
+      billing: checkoutData.billing,
+      renewalDate: getRenewalDate(new Date(), checkoutData.billing),
+      autoRenewal,
+    };
 
+    const data = {
+      type: "Subscription",
+      amount: checkoutPrice,
+      metadata: planDetails,
+      transactionType,
+    };
+
+    // start payment
     setLoading(true);
-    await onPayment(checkoutData);
+    const res = await startPayment(data);
     setLoading(false);
+
+    if (res.success && res.access_code) {
+      setPaymentPayload({
+        accessCode: res.access_code,
+        reference: res.reference,
+      });
+
+      // 2. Show waiting dialog + start popup
+      setShowPaymentDialog(true);
+    }
   };
 
   return (
@@ -230,7 +263,7 @@ export default function CheckoutDialog({
           initial={{ scale: 0.85, opacity: 0, y: 15 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.85, opacity: 0, y: 20 }}
-          transition={{ type: "spring", damping: 20 }}
+          // transition={{ type: "spring", damping: 20 }}
         >
           {/* CLOSE BUTTON */}
           <button
@@ -363,47 +396,21 @@ export default function CheckoutDialog({
               enabled={autoRenewal}
               setEnabled={setAutoRenewal}
             />
-
-            {/* PAYMENT METHODS */}
-            <div
-              className="bg-white/40 dark:bg-gray-800/40 
-        border border-gray-200/40 dark:border-gray-700/40
-        rounded-2xl p-5 shadow-inner"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <CreditCard className="w-5 h-5 text-gray-800 dark:text-gray-300" />
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                  Payment Method
-                </h4>
-              </div>
-
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition shadow-md">
-                Pay with Card
-              </button>
-
-              <p className="flex items-center gap-1 text-xs text-gray-500 mt-3">
-                <ShieldCheck className="w-4 h-4 text-green-600" />
-                100% encrypted & secured
-              </p>
-            </div>
           </div>
 
           {/* PRIMARY BUTTON */}
           <button
-            disabled={loading}
-            onClick={handlePayment}
-            className={`w-full py-3 rounded-xl text-white font-semibold shadow-lg transition flex items-center justify-center
-          ${
-            loading
-              ? "bg-blue-400 cursor-not-allowed"
-              : "bg-black hover:bg-gray-900"
-          }`}
+            onClick={payNow}
+            disabled={loading || showPaymentDialog}
+            className="w-full mt-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 
+                      text-white font-semibold flex items-center justify-center gap-2 transition"
           >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              "Complete Purchase"
-            )}
+            {((loading || showPaymentDialog) && (
+              <div className="flex items-center justify-center animate-spin">
+                <Loader />
+              </div>
+            )) || <CreditCard className="w-4" />}
+            Pay with Paystack
           </button>
         </motion.div>
 
@@ -421,12 +428,50 @@ export default function CheckoutDialog({
             setAddonsOpen(false);
           }}
         />
+
+        {showPaymentDialog && paymentPayload && (
+          <>
+            <PaymentWaitingDialog
+              onCancel={() => {
+                setShowPaymentDialog(false);
+                setPaymentPayload(null); // stops PaystackResumePayment
+              }}
+            />
+
+            <PaystackResumePayment
+              accessCode={paymentPayload.accessCode}
+              reference={paymentPayload.reference}
+              // publicKey={paystackKey}
+              onSuccess={async (ref) => {
+                const res = await completePayment(ref);
+                if (res.success) {
+                  // stop dialog + component
+                  setShowPaymentDialog(false);
+                  setPaymentPayload(null);
+
+                  if (onPay) onPay(res.user);
+                }
+              }}
+              onFail={(ref) => {
+                setShowPaymentDialog(false);
+                setPaymentPayload(null);
+
+                if (onFail) onFail(ref);
+              }}
+            />
+          </>
+        )}
       </motion.div>
     </AnimatePresence>
   );
 }
 
-const AutoRenewToggle = ({ billing = "monthly", onChange, enabled, setEnabled }) => {
+const AutoRenewToggle = ({
+  billing = "monthly",
+  onChange,
+  enabled,
+  setEnabled,
+}) => {
   // Calculate renewal date automatically
   const renewalDate = useMemo(() => {
     const date = new Date();
@@ -462,7 +507,9 @@ const AutoRenewToggle = ({ billing = "monthly", onChange, enabled, setEnabled })
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
           <RefreshCw className="w-4 h-4 text-blue-600" />
-          <h3 className="text-sm font-semibold text-gray-900/90">Auto-Renewal</h3>
+          <h3 className="text-sm font-semibold text-gray-900/90">
+            Auto-Renewal
+          </h3>
         </div>
 
         <p className="text-xs text-gray-900/60 flex items-center gap-1 mt-1">

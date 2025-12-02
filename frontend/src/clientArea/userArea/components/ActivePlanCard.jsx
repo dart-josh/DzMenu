@@ -1,5 +1,5 @@
 import { Check, Rocket } from "lucide-react";
-import { useUserStore } from "../store/useUserStore";
+import { useUserStore } from "../hooks/useUserStore";
 import { addonsList, plans } from "../../../utils/globalVariables";
 import { formatNumber, formatReadableDate } from "../../../utils/formats";
 

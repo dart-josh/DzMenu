@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { mainConnection } from "../config/db.js";
+// import { mainConnection } from "../config/db.js";
+import { getMainModel } from "../utils/db.js";
 
 const deletedUserSchema = new mongoose.Schema(
   {
@@ -11,6 +12,7 @@ const deletedUserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const DeletedUser = mainConnection.model("DeletedUser", deletedUserSchema);
+// const DeletedUser = mainConnection.model("DeletedUser", deletedUserSchema);
+const DeletedUser = await getMainModel("DeletedUser", deletedUserSchema);
 
 export default DeletedUser;

@@ -1,6 +1,6 @@
 import { CheckCircle, Plus } from "lucide-react";
 import { plans } from "../../../utils/globalVariables.jsx";
-import { useUserStore } from "../store/useUserStore";
+import { useUserStore } from "../hooks/useUserStore";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -9,13 +9,11 @@ import CheckoutDialog from "../dialogs/CheckoutDialog";
 import ConfirmUpgradeDialog from "../dialogs/ConfirmUpgradeDialog";
 import ActivePlanCard from "../components/ActivePlanCard";
 import { formatNumber } from "../../../utils/formats.jsx";
-import {
-  getRenewalDate,
-  replaceUnlimited,
-} from "../../../utils/generalFns.jsx";
+import { notify } from "../../../store/useNotificationStore.jsx";
+import toast from "react-hot-toast";
 
 export default function PlansPage() {
-  const { activePlan, updatePlan, planDetails, planActive } = useUserStore();
+  const { activePlan, updateUser, planDetails, planActive } = useUserStore();
 
   const [billing, setBilling] = useState("monthly");
 
@@ -33,15 +31,17 @@ export default function PlansPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [upgradePlanId, setUpgradePlanId] = useState(null);
 
+  const [transactionType, setTransactionType] = useState("Payment");
+
   const isPlanLower = (id) => {
     if (!id) return false;
-    
+
     const planInd = plans.findIndex((p) => p.id == id);
     const activePlanInd = plans.findIndex((p) => p.id == activePlan);
     if (planInd != -1) {
       return planInd < activePlanInd;
     } else return false;
-  }
+  };
 
   return (
     <div className="min-h-screen w-full bg-gray-100 dark:bg-gray-900 flex flex-col items-center px-2 sm:px-4 py-12">
@@ -111,6 +111,7 @@ export default function PlansPage() {
             isPlanLower={isPlanLower}
             setUpgradePlanId={setUpgradePlanId}
             planDetails={planDetails}
+            setTransactionType={setTransactionType}
           />
         ))}
       </div>
@@ -145,6 +146,7 @@ export default function PlansPage() {
           setConfirmUpgradeOpen(false);
           console.log(upgradeData);
           setCheckoutOpen(true);
+          setTransactionType("Upgrade");
         }}
       />
 
@@ -153,24 +155,25 @@ export default function PlansPage() {
         autoRenewalEnabled={planDetails?.autoRenewal || false}
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
-        onPayment={async (data) => {
-          // update plan
-          const planDetails = {
-            id: data.plan.id,
-            name: data.plan.name,
-            limits: replaceUnlimited(data.plan.limits, -1),
-            addons: data.addons,
-            billing: data.billing,
-            renewalDate: getRenewalDate(new Date(), data.billing),
-            autoRenewal: data.autoRenewal,
-          };
-          const res = await updatePlan({ planDetails });
-          if (res.success) {
-            setCheckoutOpen(false);
-          }
-          console.log(res);
-
-          // save transaction
+        transactionType={transactionType}
+        onPay={async (data) => {
+          if (data) updateUser(data);
+          setCheckoutOpen(false);
+          notify({
+            title: "Payment completed",
+            message: "Your payment was completed successfully",
+            type: "success",
+            duration: 3000,
+          });
+        }}
+        onFail={(ref) => {
+          console.log(ref);
+          notify({
+            title: "Payment failed",
+            message: "Your payment was not successful, please try again",
+            type: "error",
+            duration: 3000,
+          });
         }}
       />
     </div>
@@ -192,7 +195,9 @@ const PlanTile = ({
   isPlanLower,
   setUpgradePlanId,
   planDetails,
+  setTransactionType,
 }) => {
+  const { user } = useUserStore();
   return (
     <motion.div
       key={plan.id}
@@ -266,17 +271,21 @@ const PlanTile = ({
 
         <button
           onClick={() => {
+            if (!user) {
+              return toast.error("Please login", {id: 'error1'});
+            }
             if (planActive) {
-              setUpgradePlanId(plan.id)
+              setUpgradePlanId(plan.id);
               setUpgradeOpen(true);
             } else {
-              console.log(planDetails?.addons)
+              console.log(planDetails?.addons);
               const data = {
                 billing,
                 plan: plan,
                 finalPrice: getPrice(plan),
                 addons: planDetails?.addons || {},
               };
+              setTransactionType("Subscription");
               setSelectedPlan(data);
               setCheckoutOpen(true);
             }
@@ -292,7 +301,9 @@ const PlanTile = ({
           {activePlan === plan.id && planActive
             ? "Current Plan"
             : planActive
-            ? isPlanLower(plan.id) ? "Downgrade Plan" : "Upgrade Plan"
+            ? isPlanLower(plan.id)
+              ? "Downgrade Plan"
+              : "Upgrade Plan"
             : "Get Started"}
         </button>
       </div>

@@ -1,7 +1,12 @@
 import { categorySchema, productSchema } from "../../models/product.schema.js";
 import { Store } from "../../models/store.model.js";
-import { getTenantModel } from "../../utils/tenantManager.js";
 import cloudinary, { uploadToCloudinary } from "../../lib/cloudinary.js";
+import {
+  cleanUserDetails,
+  planLimitCheck,
+  updatePlanUsage,
+} from "./user.controller.js";
+import { getTenantModel } from "../../utils/db.js";
 
 // create product //! Test images
 export const create_product = async (req, res) => {
@@ -9,6 +14,11 @@ export const create_product = async (req, res) => {
   try {
     const { storeId } = req.params;
     const productDetails = req.body;
+
+    const user = req.user;
+    const limitCheck = planLimitCheck(user, "products");
+    if (!limitCheck.success)
+      return res.status(400).json({ error: limitCheck.message });
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
@@ -45,7 +55,15 @@ export const create_product = async (req, res) => {
     }
 
     const product = await Product.create(productDetails);
-    res.status(201).json({ message: "Product created", product });
+
+    const newUser = await updatePlanUsage(user?._id, "products", 1);
+
+    const cleanedUser = await cleanUserDetails(newUser);
+    res.status(201).json({
+      message: "Product created",
+      product,
+      user: cleanedUser,
+    });
   } catch (err) {
     console.error("❌ Error in v1 product.controller create_product:", err);
     res.status(500).json({ error: "Server error" });
@@ -128,6 +146,9 @@ export const update_product = async (req, res) => {
 export const delete_product = async (req, res) => {
   try {
     const { storeId, productId } = req.params;
+    const user = req.user;
+
+    if (!user) return res.status(400).json({ error: "Invalid user" });
 
     if (!storeId) return res.status(400).json({ error: "Store invalid" });
 
@@ -155,7 +176,13 @@ export const delete_product = async (req, res) => {
     if (result.deletedCount === 0)
       return res.status(404).json({ error: "Product not found" });
 
-    return res.status(200).json({ message: "Product deleted" });
+    const newUser = await updatePlanUsage(user?._id, "products", -1);
+
+    const cleanedUser = await cleanUserDetails(newUser);
+    return res.status(200).json({
+      message: "Product deleted",
+      user: cleanedUser,
+    });
   } catch (err) {
     console.error("❌ Error in v1 product.controller delete_product:", err);
     res.status(500).json({ error: "Server error" });
@@ -314,5 +341,3 @@ export const deleteProductImage = async (image, storeId) => {
     return false;
   }
 };
-
-

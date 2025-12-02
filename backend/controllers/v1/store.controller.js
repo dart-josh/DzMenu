@@ -1,7 +1,11 @@
 import cloudinary, { uploadToCloudinary } from "../../lib/cloudinary.js";
 import { Store } from "../../models/store.model.js";
-import { getTenantConnection } from "../../utils/tenantManager.js";
-import { cleanUserDetails, isPlanActive, updatePlanUsage } from "./user.controller.js";
+import {
+  cleanUserDetails,
+  isPlanActive,
+  planLimitCheck,
+  updatePlanUsage,
+} from "./user.controller.js";
 
 // create store
 export const create_store = async (req, res) => {
@@ -11,16 +15,9 @@ export const create_store = async (req, res) => {
 
     const user = req.user;
 
-    if (!user) return res.status(400).json({ error: "User invalid" });
-
-    if (!isPlanActive(user.planDetails?.renewalDate)) return res.status(400).json({ error: "No active plan" });
-
-    if (
-      user.planUsage?.stores >=
-      (user.planDetails?.limits.stores || 0) +
-        (user.planDetails?.addons?.stores || 0)
-    )
-      return res.status(400).json({ error: "Store limit reached" });
+    const limitCheck = planLimitCheck(user, "stores");
+    if (!limitCheck.success)
+      return res.status(400).json({ error: limitCheck.message });
 
     if (!storeId || !storeName)
       return res.status(400).json({ error: "Store invalid" });
@@ -51,13 +48,11 @@ export const create_store = async (req, res) => {
 
     const newUser = await updatePlanUsage(user?._id, "stores", 1);
 
-    // Initialize DB (optional)
-    const conn = await getTenantConnection(dbName);
-
+    const cleanedUser = await cleanUserDetails(newUser);
     res.json({
       message: "Store created",
       store,
-      user: cleanUserDetails(newUser._doc),
+      user: cleanedUser,
     });
   } catch (error) {
     console.error("❌ Error v1 store.controller create_store:", error);
@@ -199,9 +194,10 @@ export const delete_store = async (req, res) => {
 
     const newUser = await updatePlanUsage(user?._id, "stores", -1);
 
+    const cleanedUser = await cleanUserDetails(newUser);
     return res
       .status(200)
-      .json({ message: "Store deleted", user: cleanUserDetails(newUser._doc) });
+      .json({ message: "Store deleted", user: cleanedUser });
   } catch (err) {
     console.error("❌ Error in v1 store.controller delete_store:", err);
     res.status(500).json({ error: "Server error" });

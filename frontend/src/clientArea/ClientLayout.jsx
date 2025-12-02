@@ -8,7 +8,7 @@ import NotificationContainer from "../components/NotificationContainer";
 import CreateShortcutDialog from "./components/CreateShortcutDialog";
 import { useClientStore } from "../store/useClientStore";
 import { scrollToTop } from "../utils/generalFns";
-import { useUserStore } from "./userArea/store/useUserStore";
+import { useUserStore } from "./userArea/hooks/useUserStore";
 
 const ClientLayout = () => {
   const { fetchUser } = useUserStore();

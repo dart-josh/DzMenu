@@ -8,7 +8,7 @@ import {
   editProfile,
   getUser,
   startEmailVerification,
-  updatePlan,
+  updatePlanAutoRenewal,
 } from "../../controllers/v1/user.controller.js";
 import { userProtect } from "../../middleware/auth.middleware.js";
 
@@ -17,7 +17,7 @@ const router = express.Router();
 router.post("/createProfile", userProtect, createProfile);
 router.post("/editProfile", userProtect, editProfile);
 router.post("/startEmailVerification", userProtect, startEmailVerification);
-router.post("/updatePlan", userProtect, updatePlan);
+router.post("/updatePlanAutoRenewal", userProtect, updatePlanAutoRenewal);
 router.post("/changeEmail", changeEmail);
 router.post("/changePassword", changePassword);
 router.get("/getUser", getUser);

@@ -158,6 +158,7 @@ export const create_page = async (storeId, data) => {
       success: true,
       message: response.data.message,
       page: response.data.page,
+      user: response.data.user,
     };
   } catch (error) {
     console.log("Error in create_page function - ", error);
@@ -239,6 +240,7 @@ export const delete_page = async (storeId, pageId) => {
     return {
       success: true,
       message: response.data.message,
+      user: response.data.user,
     };
   } catch (error) {
     console.log("Error in delete_page function - ", error);
@@ -285,6 +287,7 @@ export const create_product = async (storeId, data) => {
       success: true,
       message: response.data.message,
       product: response.data.product,
+      user: response.data.user,
     };
   } catch (error) {
     console.log("Error in create_product function - ", error);
@@ -332,6 +335,7 @@ export const delete_product = async (storeId, productId) => {
     return {
       success: true,
       message: response.data.message,
+      user: response.data.user,
     };
   } catch (error) {
     console.log("Error in delete_product function - ", error);
@@ -484,10 +488,10 @@ export const startEmailVerification = async () => {
   }
 };
 
-export const updatePlan = async (data) => {
+export const updatePlanAutoRenewal = async (data) => {
   try {
     const response = await axios.post(
-      `${server_prefix}/user/updatePlan`,
+      `${server_prefix}/user/updatePlanAutoRenewal`,
       data
     );
 
@@ -497,7 +501,7 @@ export const updatePlan = async (data) => {
       user: response.data.user,
     };
   } catch (error) {
-    console.log("Error in updatePlan function - ", error);
+    console.log("Error in updatePlanAutoRenewal function - ", error);
     return {
       success: false,
       message: error.response?.data?.error || error.message || error,
@@ -550,6 +554,7 @@ export const getAuthUser = async () => {
   try {
     const response = await axios.get(`${server_prefix}/auth/getAuthUser`);
 
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.log("Error in getAuthUser function - ", error);
@@ -577,7 +582,9 @@ export const logout = async () => {
 // verifyEmail
 export const verifyEmail = async (code) => {
   try {
-    const response = await axios.post(`${server_prefix}/auth/verifyEmail`, {code});
+    const response = await axios.post(`${server_prefix}/auth/verifyEmail`, {
+      code,
+    });
 
     return {
       success: true,
@@ -586,6 +593,65 @@ export const verifyEmail = async (code) => {
     };
   } catch (error) {
     console.log("Error in verifyEmail function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+//?----------------------------------
+
+//?------- PAYMENT ------------------
+
+// start payment
+export const startPayment = async (data) => {
+  try {
+    const response = await axios.post(`${server_prefix}/payment/create`, data);
+
+    return {
+      success: true,
+      message: response.data.message,
+      reference: response.data.reference,
+      access_code: response.data.access_code,
+      authorization_url: response.data.authorization_url,
+    };
+  } catch (error) {
+    console.log("Error in startPayment function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+// getPaymentStatus
+export const getPaymentStatus = async (reference) => {
+  try {
+    const response = await axios.get(
+      `${server_prefix}/payment/status/${reference}`
+    );
+
+    return { success: true, status: response.data.status };
+  } catch (error) {
+    console.log("Error in getPaymentStatus function - ", error);
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message || error,
+    };
+  }
+};
+
+// completePayment
+export const completePayment = async (reference) => {
+  try {
+    const response = await axios.get(
+      `${server_prefix}/payment/complete/${reference}`
+    );
+
+    return { success: true, status: response.data.status, user: response.data.user };
+  } catch (error) {
+    console.log("Error in completePayment function - ", error);
     return {
       success: false,
       message: error.response?.data?.error || error.message || error,

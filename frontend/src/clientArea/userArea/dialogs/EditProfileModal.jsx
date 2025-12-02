@@ -1,5 +1,5 @@
 import { X, User, Briefcase, Loader, LockKeyhole } from "lucide-react";
-import { useUserStore } from "../store/useUserStore";
+import { useUserStore } from "../hooks/useUserStore";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { sanitizeString } from "../../../utils/stringSanitizers";
@@ -39,8 +39,7 @@ const EditProfileModal = ({ isOpen, onClose, user }) => {
     if (res.success) {
       toast.success(res.message);
       onClose?.();
-    }
-    else toast.error(res.message, { id: "error2" });
+    } else toast.error(res.message, { id: "error2" });
   };
 
   useEffect(() => {
@@ -136,7 +135,11 @@ const EditProfileModal = ({ isOpen, onClose, user }) => {
               className="w-full px-4 py-2 bg-white/70 backdrop-blur-sm border border-white/60 rounded-lg shadow-sm
                          focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
-              {userRoles.map((role, i) => (<option key={i} value={role}>{role}</option>))}
+              {userRoles.map((role, i) => (
+                <option key={i} value={role}>
+                  {role}
+                </option>
+              ))}
             </select>
           </div>
 

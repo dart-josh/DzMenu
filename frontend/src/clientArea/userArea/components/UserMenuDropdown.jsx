@@ -55,13 +55,13 @@ export default function UserMenuDropdown() {
   ];
 
   const logoutFn = async () => {
-    // const res = await signup({email: 'jana@gmail.com', password: '123456'});
-    // if (res.success) {
-    //   toast.success(res.message, {id: 'success1'});
-    // } else {
-    //   toast.error(res.message, {id: "error1"});
-    // }
-  }
+    const res = await signup({ email: "jana@gmail.com", password: "123456" });
+    if (res.success) {
+      toast.success(res.message, { id: "success1" });
+    } else {
+      toast.error(res.message, { id: "error1" });
+    }
+  };
 
   return (
     <div className="relative">
@@ -71,11 +71,7 @@ export default function UserMenuDropdown() {
           onClick={() => setOpen(!open)}
           className="flex size-10 items-center cursor-pointer justify-center rounded-full hover:bg-gray-100 transition"
         >
-          <img
-            src={user.avatar}
-            alt="User"
-            className="size-7"
-          />
+          <img src={user.avatar} alt="User" className="size-7" />
         </button>
       </div>
 
@@ -125,7 +121,7 @@ export default function UserMenuDropdown() {
                     <Link
                       key={i}
                       to={item.href}
-                      onClick={()=> setOpen(false)}
+                      onClick={() => setOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-blue-50 hover:to-emerald-50 transition-all"
                     >
                       <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gray-50 border border-gray-100">

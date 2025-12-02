@@ -12,14 +12,13 @@ import MyAccount from "../clientArea/userArea/pages/MyAccountPage";
 import PlansPage from "../clientArea/userArea/pages/PlansPage";
 import PaymentProfile from "../clientArea/userArea/pages/PaymentProfilePage";
 import SettingsPage from "../clientArea/userArea/pages/SettingsPage";
+import DzVistaLanding from "../LandingPage";
 
 const routes = [
   {
     path: "/",
     element: (
-      <div className="flex w-full h-screen items-center justify-center">
-        Welcome to DzVista
-      </div>
+      <DzVistaLanding />
     ),
   },
 

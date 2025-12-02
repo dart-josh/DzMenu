@@ -32,7 +32,7 @@ app.use(
   })
 );
 
-dotenv.config();
+dotenv.config({ quiet: true });
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
@@ -44,7 +44,7 @@ app.use("/api", routes);
 // serve frontend in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
-  app.get("*", (req, res) => {
+  app.use((req, res) => {
     res.sendFile(path.resolve(__dirname, "../frontend/dist/index.html"));
   });
 }

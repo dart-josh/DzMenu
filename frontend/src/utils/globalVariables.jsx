@@ -109,6 +109,7 @@ export const plans = [
   {
     id: "starter",
     name: "Starter",
+    iconMeta: Package,
     icon: <Package className="w-7 h-7 text-blue-500" />,
     tagline: "Perfect for small businesses taking their first digital step.",
     limits: {
@@ -128,6 +129,7 @@ export const plans = [
   {
     id: "starter_plus",
     name: "Starter plus",
+    iconMeta: Package,
     icon: <Package className="w-7 h-7 text-blue-500" />,
     tagline: "Perfect for small businesses with more amount of products.",
     limits: {
@@ -147,6 +149,7 @@ export const plans = [
   {
     id: "pro",
     name: "Pro",
+    iconMeta: Star,
     icon: <Star className="w-7 h-7 text-purple-500" />,
     tagline: "Designed for growing brands and multi-category businesses.",
     limits: {
@@ -167,6 +170,7 @@ export const plans = [
   {
     id: "business",
     name: "Business",
+    iconMeta: Crown,
     icon: <Crown className="w-7 h-7 text-amber-500" />,
     tagline: "For structured restaurants, boutiques, lounges & enterprises.",
     limits: {
@@ -187,6 +191,7 @@ export const plans = [
   {
     id: "elite",
     name: "Elite",
+    iconMeta: Rocket,
     icon: <Rocket className="w-7 h-7 text-cyan-500" />,
     tagline:
       "Unlimited scalability. Built for franchises, chains, and large brands.",

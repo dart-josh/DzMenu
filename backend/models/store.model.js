@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { mainConnection } from "../config/db.js";
+// import { mainConnection } from "../config/db.js";
+import { getMainModel } from "../utils/db.js";
 
 const storeSchema = new mongoose.Schema(
   {
@@ -16,4 +17,5 @@ const storeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Store = mainConnection.model("Store", storeSchema);
+// export const Store = mainConnection.model("Store", storeSchema);
+export const Store = await getMainModel("Store", storeSchema);

@@ -1,7 +1,7 @@
 import { dollarSign } from "./globalVariables";
 
 export const formatNumber = (num, showSymbol = false, decimals = 0) => {
-  if (!num) return '';
+  if (!num) return "";
   const val = Number(num).toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -50,4 +50,9 @@ export const getInitials = (value) => {
   } else {
     return value.substring(0, 2).toUpperCase();
   }
+};
+
+export const capitalizeFirst = (str) => {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
 };

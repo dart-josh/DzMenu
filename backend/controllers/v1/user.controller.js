@@ -2,6 +2,7 @@ import bcryptjs from "bcryptjs";
 import User from "../../models/user.model.js";
 import DeletedUser from "../../models/deleted_user.model.js";
 import mongoose from "mongoose";
+import Transaction from "../../models/transaction.model.js";
 
 export const createProfile = async (req, res) => {
   const { fullname, userRole } = req.body;
@@ -25,9 +26,10 @@ export const createProfile = async (req, res) => {
     user.userRole = userRole;
     await user.save();
 
+    const cleanedUser = await cleanUserDetails(user);
     res.status(201).json({
       message: "Profile Created",
-      user: cleanUserDetails(user._doc),
+      user: cleanedUser,
     });
   } catch (error) {
     console.log("❌ Error in v1 user.controller createProfile ", error);
@@ -65,9 +67,10 @@ export const editProfile = async (req, res) => {
     user.userRole = userRole;
     await user.save();
 
+    const cleanedUser = await cleanUserDetails(user);
     res.json({
       message: "Profile updated",
-      user: cleanUserDetails(user._doc),
+      user: cleanedUser,
     });
   } catch (error) {
     console.log("❌ Error in v1 user.controller editProfile ", error);
@@ -109,32 +112,29 @@ export const startEmailVerification = async (req, res) => {
   }
 };
 
-export const updatePlan = async (req, res) => {
-  const { planDetails } = req.body;
+export const updatePlanAutoRenewal = async (req, res) => {
+  const { value } = req.body;
+  const user = req.user;
 
-  if (!req.user?.userId) {
-    return res.status(400).json({ error: "User not found" });
-  }
-
-  if (!planDetails) {
-    return res.status(400).json({ error: "Invalid plan" });
-  }
+  if (!user) return res.status(400).json({ error: "Invalid user" });
 
   try {
-    const user = req.user;
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    const new_user = await User.findByIdAndUpdate(
+      user._id,
+      {
+        $set: { [`planDetails.autoRenewal`]: value },
+      },
+      { new: true }
+    );
 
-    user.planDetails = planDetails;
-    await user.save();
-
-    res.json({
-      message: "Plan updated",
-      user: cleanUserDetails(user._doc),
+    const cleanedUser = await cleanUserDetails(new_user);
+    return res.json({
+      success: true,
+      message: `Auto renewal ${value ? "Enabled" : "Disabled"}`,
+      user: cleanedUser,
     });
   } catch (error) {
-    console.log("❌ Error in v1 user.controller updatePlan ", error);
+    console.log("❌ Error in v1 user.controller updatePlanAutoRenewal ", error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -168,12 +168,10 @@ export const changeEmail = async (req, res) => {
     user.email = newEmail;
     await user.save();
 
+    const cleanedUser = await cleanUserDetails(user);
     res.json({
       message: "Email updated",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
+      user: cleanedUser,
     });
   } catch (error) {
     console.log("❌ Error in v1 user.controller changeEmail ", error);
@@ -206,12 +204,10 @@ export const changePassword = async (req, res) => {
     user.password = newPassword;
     await user.save();
 
+    const cleanedUser = await cleanUserDetails(user);
     res.json({
       message: "Password updated successfully",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
+      user: cleanedUser,
     });
   } catch (error) {
     console.log("❌ Error in v1 user.controller changePassword ", error);
@@ -251,12 +247,10 @@ export const deactivateUser = async (req, res) => {
     user.isActive = false;
     await user.save();
 
+    const cleanedUser = await cleanUserDetails(user);
     res.status(200).json({
       message: "User deactivated",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
+      user: cleanedUser,
     });
   } catch (error) {
     console.log("❌ Error in v1 user.controller deactivateUser ", error);
@@ -306,6 +300,66 @@ export const deleteAccount = async (req, res) => {
 
 // UTILS
 
+export const updatePlan = async (user, planDetails) => {
+  if (!user) {
+    return { success: false, error: "User not found" };
+  }
+
+  if (!planDetails) {
+    return { success: false, error: "Invalid plan" };
+  }
+
+  const metaObj = Object.fromEntries(planDetails);
+
+  try {
+    const db_user = await User.findById(user);
+    db_user.planDetails = metaObj;
+    await db_user.save();
+
+    const cleanedUser = await cleanUserDetails(db_user);
+    return {
+      success: true,
+      message: "Plan updated",
+      user: cleanedUser,
+    };
+  } catch (error) {
+    console.log("❌ Error in v1 user.controller updatePlan ", error);
+    return { success: false, error: "Server error" };
+  }
+};
+
+export const updateAddons = async (user, addons) => {
+  if (!user) return { success: false, error: "Invalid user" };
+
+  const metaObj = Object.fromEntries(addons);
+
+  try {
+    const new_user = await User.findByIdAndUpdate(
+      user,
+      {
+        $inc: {
+          [`planDetails.addons.stores`]: metaObj?.stores || 0,
+          [`planDetails.addons.pages`]: metaObj?.pages || 0,
+          [`planDetails.addons.products`]: metaObj?.products || 0,
+        },
+      },
+      { new: true }
+    );
+
+    const cleanedUser = await cleanUserDetails(new_user);
+    return {
+      success: true,
+      message: "Addons added to plan",
+      user: cleanedUser,
+    };
+  } catch (error) {
+    console.log("❌ Error in v1 user.controller updateAddons ", error);
+    return { success: false, error: "Server error" };
+  }
+};
+
+//?
+
 export const updatePlanUsage = async (userId, field, amount) => {
   if (!mongoose.isValidObjectId(userId)) {
     throw new Error("Invalid userId");
@@ -339,7 +393,38 @@ export const isPlanActive = (date) => {
   return target > now;
 };
 
-export const cleanUserDetails = (user) => {
+export const planLimitCheck = (user, operation) => {
+  if (!user) return { success: false, message: "User invalid" };
+
+  if (!isPlanActive(user.planDetails?.renewalDate))
+    return { success: false, message: "No active plan" };
+
+  const used = user.planUsage;
+  const limits = user.planDetails?.limits;
+  const addons = user.planDetails?.addons;
+
+  if (operation == "stores") {
+    const limit = (limits?.stores || 0) + (addons?.stores || 0);
+    if (used?.stores >= limit && limits.stores != -1)
+      return { success: false, message: "Store limit reached" };
+  }
+
+  if (operation == "pages") {
+    const limit = (limits?.pages || 0) + (addons?.pages || 0);
+    if (used?.pages >= limit && limits.pages != -1)
+      return { success: false, message: "Page limit reached" };
+  }
+
+  if (operation == "products") {
+    const limit = (limits?.products || 0) + (addons?.products || 0);
+    if (used?.products >= limit && limits.products != -1)
+      return { success: false, message: "Product limit reached" };
+  }
+
+  return { success: true, message: "" };
+};
+
+export const cleanUserDetails = async (user) => {
   user.password = undefined;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpiresAt = undefined;
@@ -349,6 +434,17 @@ export const cleanUserDetails = (user) => {
   user.updatedAt = undefined;
   user._id = undefined;
   user.__v = undefined;
+
+  user = await user.populate([
+    {
+      path: "paymentHistory",
+      model: Transaction,
+    },
+    {
+      path: "pendingPayments",
+      model: Transaction,
+    },
+  ]);
 
   return user;
 };
