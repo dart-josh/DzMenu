@@ -548,7 +548,6 @@ const ItemTile = ({ item, isSub = false, closeSidebar }) => {
         confirmText: "Change store",
         cancelText: "Just view",
       };
-
       setConfirmDetails(conf);
     };
 
