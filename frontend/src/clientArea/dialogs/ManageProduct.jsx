@@ -136,8 +136,8 @@ const ManageProductDialog = ({
   };
 
   const clearErrors = () => {
-    setIdError("");
     setNameError("");
+    setIdError("");
   };
 
   // check all errors
