@@ -130,7 +130,9 @@ const ManageProductDialog = ({
         duration: 3000,
       });
       updateProduct(cat.product);
-      if (cat.user) updateUser(cat.user);
+      if (cat.user) {
+        updateUser(cat.user);
+      }
     }
     return cat.success;
   };
