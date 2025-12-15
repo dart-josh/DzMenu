@@ -118,7 +118,6 @@ const ManageProductDialog = ({
     } else {
       cat = await update_product(storeId, dataToSend);
     }
-
     if (!cat.success) toast.error(cat.message || "Error", { id: "error1" });
     else {
       notify({
