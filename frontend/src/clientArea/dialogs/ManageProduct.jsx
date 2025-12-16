@@ -110,7 +110,7 @@ const ManageProductDialog = ({
     }
   };
 
-  // create/update store
+  // create & update store
   const onSave = async (storeId, dataToSend, rawData, isCreate) => {
     let cat;
     if (isCreate) {
