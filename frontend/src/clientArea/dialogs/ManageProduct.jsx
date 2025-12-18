@@ -138,8 +138,8 @@ const ManageProductDialog = ({
   };
 
   const clearErrors = () => {
-    setNameError("");
     setIdError("");
+    setNameError("");
   };
 
   // check all errors
