@@ -542,8 +542,8 @@ const ItemTile = ({ item, isSub = false, closeSidebar }) => {
     const openConfirmDialog = (storeId) => {
       const conf = {
         onConfirm: handleChange,
-        title: "Change Store",
         description: `You are about to change your active store to store with ID ${storeId}`,
+        title: "Change Store",
         icon: "warning",
         confirmText: "Change store",
         cancelText: "Just view",

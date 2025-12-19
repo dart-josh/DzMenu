@@ -204,7 +204,7 @@ const ManageProductDialog = ({
   }, [formData.name]);
 
   const resetVars = () => {
-    clearErrors();
+    
     setFormData({
       productId: product?.productId || "",
       name: product?.name || "",
@@ -213,6 +213,7 @@ const ManageProductDialog = ({
       description: product?.description || "",
       image: null,
     });
+    clearErrors();
     setPreview(null);
   };
 
