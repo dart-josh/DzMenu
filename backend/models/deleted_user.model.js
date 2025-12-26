@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-// import { mainConnection } from "../config/db.js";
 import { getMainModel } from "../utils/db.js";
 
 const deletedUserSchema = new mongoose.Schema(

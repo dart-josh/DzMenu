@@ -44,7 +44,7 @@ export default function AddonsDialog({
   const increment = (id) => {
     setSelected((prev) => ({
       ...prev,
-      [id]: prev[id] >= getMax(id) ? prev[id] : prev[id] + 1,
+      [id]: prev[id] >= getMax(id) ? prev[id] : (prev[id] ?? 0) + 1,
     }));
   };
 

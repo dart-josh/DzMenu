@@ -11,7 +11,7 @@ import { useState } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { logout, signup } from "../../../helpers/serverHelpers";
+import { login, logout, signup } from "../../../helpers/serverHelpers";
 import toast from "react-hot-toast";
 
 export default function UserMenuDropdown() {
@@ -55,7 +55,7 @@ export default function UserMenuDropdown() {
   ];
 
   const logoutFn = async () => {
-    const res = await signup({ email: "jana@gmail.com", password: "123456" });
+    const res = await login({ email: "jana@gmail.com", password: "123456" });
     if (res.success) {
       toast.success(res.message, { id: "success1" });
     } else {
